@@ -33,6 +33,7 @@ graph = Heatmap(update_main=update)
 graph_area = column(row(graph.get_plot()), width_policy='max')
 
 control_panel.tabs.append(TabPanel(title='Heatmap', child=graph.get_controls()))
+control_panel.tabs.append(TabPanel(title='Time Series', child=graph.get_controls()))
 
 layout = row(control_area, graph_area)
 
