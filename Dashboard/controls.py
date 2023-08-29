@@ -35,7 +35,7 @@ class Controls:
 
         self.title = TextInput(
             title='Title',
-            value=f'Graph #{index}'
+            value='Heatmap'
         )
         self.title.on_change('value', self.general_change_handler)
 

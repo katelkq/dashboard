@@ -69,37 +69,46 @@ class Heatmap(Graph):
             print(url)
 
             self.source = pd.read_csv(url)
+
+            print(self.source)
         pass
 
     def preprocess(self):
-        self.source = self.source.drop_duplicates().sort_values(by=['buzz'], ascending=False).reset_index(drop=True).head(10)
+        """
+        some logic to derive heatmap related rendering metrics
+        """
+        # x is the number of entities displayed in the heatmap
+        x = 20
+
+        self.source = self.source.drop_duplicates().sort_values(by=['buzz'], ascending=False).reset_index(drop=True).head(x)
 
         self.source['buzz_normalized'] = self.source['buzz'].divide(self.source['buzz'].sum())
         self.source['buzz_cumulative'] = self.source['buzz_normalized'].cumsum()
 
-        # let's use 3 columns for this one
-        cutoff1 = (self.source['buzz_cumulative']-1/3).abs().argsort()[:1][0]
-        cutoff2 = (self.source['buzz_cumulative']-2/3).abs().argsort()[:1][0]
+        # n is the number of columns displayed in the heatmap
+        n = 4
 
-        # can look at the logic here if time
-        first = self.source['buzz_cumulative'][cutoff1]
-        second = self.source['buzz_cumulative'][cutoff2] - first
-        third = 1 - first - second
+        cutoff_indices = []
+        for i in range(n):
+            cutoff_indices.append((self.source['buzz_cumulative'] - (i+1)/n).abs().argsort()[:1][0])
 
-        self.source.loc[:cutoff1, 'width'] = first
-        self.source.loc[cutoff1+1:cutoff2, 'width'] = second
-        self.source.loc[cutoff2+1:, 'width'] = third
+        # slightly twisted logic
+        cutoff_widths = [self.source['buzz_cumulative'][cutoff_indices[0]]]
+        for i in range(1, n):
+            width = self.source['buzz_cumulative'][cutoff_indices[i]] - sum(cutoff_widths)
+            cutoff_widths.append(width)
+
+        cutoff_indices.insert(0, -1)
+        cutoff_indices.append(len(self.source)-1)
+        
+        for i in range(n):
+            self.source.loc[cutoff_indices[i]+1:cutoff_indices[i+1], 'width'] = cutoff_widths[i]
+            self.source.loc[cutoff_indices[i]+1:cutoff_indices[i+1], 'x'] = sum(cutoff_widths[:i])
 
         self.source['height'] = self.source['buzz_normalized'].divide(self.source['width'])
-
-        self.source.loc[:cutoff1, 'x'] = 0
-        self.source.loc[cutoff1+1:cutoff2, 'x'] = first
-        self.source.loc[cutoff2+1:, 'x'] = first + second
-
-        self.source.loc[:cutoff1, 'y'] = -self.source.loc[:cutoff1, 'height'].cumsum()
-
-        self.source.loc[cutoff1+1:cutoff2, 'y'] = -self.source.loc[cutoff1+1:cutoff2, 'height'].cumsum()
-        self.source.loc[cutoff2+1:, 'y'] = -self.source.loc[cutoff2+1:, 'height'].cumsum()
+        
+        for i in range(n):
+            self.source.loc[cutoff_indices[i]+1:cutoff_indices[i+1], 'y'] = -self.source.loc[cutoff_indices[i]+1:cutoff_indices[i+1], 'height'].cumsum()
 
         self.source['label_y'] = self.source['y'] + self.source['height']
 
@@ -108,14 +117,14 @@ class Heatmap(Graph):
 
     def render(self):
         self.plot = figure(
-            title=f'Graph #{self.index}',
+            title='Heatmap',
             tools=[HoverTool(),SaveTool()],
             tooltips=[
                 ('Name', '@name'),
                 ('Buzz', '@buzz'),
                 ('ESG Score', '@ESG')
             ],
-            width=700,
+            width=1400,
             height=900
         )
 
