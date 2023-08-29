@@ -30,7 +30,7 @@ class TimeSeries(Graph):
         self.update_main = update_main
         self.control_status = self.controls.get_status()
 
-        self.import_data()
+        self.fetch_data()
         self.preprocess_heatmap()
         self.render_heatmap()
         pass
@@ -48,13 +48,13 @@ class TimeSeries(Graph):
                 self.render_heatmap()
 
             case 'Timeseries':
-                self.preprocess_timeseries()
-                self.render_timeseries()
+                self.preprocess()
+                self.render()
 
         self.update_main(self.index)
         pass
 
-    def import_data(self):
+    def fetch_data(self):
         print(self.control_status['color_var'])
 
         if True or self.control_status['color_var'] in equcor_datacols['name']:
@@ -71,7 +71,7 @@ class TimeSeries(Graph):
 
         pass
 
-    def preprocess_timeseries(self):
+    def preprocess(self):
         self.source = pd.read_csv('./Dashboard/sample_data/4295905573.csv')
         self.source = pd.concat([self.source]*5, ignore_index=True)
 
@@ -81,7 +81,7 @@ class TimeSeries(Graph):
         self.source[nums] = self.source[nums].apply(lambda x: np.random.normal(loc=x, scale=0.2*np.abs(x)))
         pass
 
-    def render_timeseries(self):
+    def render(self):
 
         # create a new plot with a title and axis labels
         self.plot = figure(
