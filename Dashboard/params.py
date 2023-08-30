@@ -18,3 +18,9 @@ with open('./lib/tickers.pickle', 'rb') as handle:
 
 with open('./lib/score_types.pickle', 'rb') as handle:
     score_types = pickle.load(handle)
+
+with open('./lib/core.pickle', 'rb') as handle:
+    core = pickle.load(handle)
+
+with open('./lib/advanced.pickle', 'rb') as handle:
+    advanced = pickle.load(handle)

@@ -32,7 +32,7 @@ def update(display):
 
 # initializing control area layout
 control_panel = Tabs(tabs=[])
-control_area = column(header, control_panel)
+control_area = column(header, control_panel, width=350)
 
 graph = Heatmap(update_main=update)
 

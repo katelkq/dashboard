@@ -25,17 +25,18 @@ class Heatmap(Graph):
     """
 
     def init_controls(self):
-        self.controls = HeatmapControls(1, self.update)
+        self.controls = HeatmapControls(self.update)
         self.control_status = self.controls.get_status()
         pass
 
-    def update(self, control_status):
-        if DEBUG:
-            for (key, value) in control_status.items():
+    def update(self):
+        self.control_status = self.controls.get_status()
+
+        if DEBUG: # prints the items in control_status
+            for (key, value) in self.control_status.items():
                 print(f'Key: {key}, value: {value}, type: {type(value)}')
 
-        self.control_status = control_status
-
+        self.fetch_data()
         self.preprocess()
         self.render()
 
@@ -43,6 +44,7 @@ class Heatmap(Graph):
         pass
 
     def fetch_data(self):
+        # check if datacol in question belongs to Core or Advanced
         print(self.control_status['color_var'])
 
         if True or self.control_status['color_var'] in equcor_datacols['name']:
@@ -51,7 +53,7 @@ class Heatmap(Graph):
             start_date = datetime.date(datetime.now()) - timedelta(days=1)
             end_date = datetime.date(datetime.now())
 
-            url = f'https://dataapi.marketpsych.com/esg/v4/data/equcor/dai/all?apikey={API_KEY}&start_date={start_date}&end_date={end_date}&datacols=buzz,ESG&format=csv'
+            url = f'https://dataapi.marketpsych.com/esg/v4/data/equcor/dai/all?apikey={API_KEY}&start_date={start_date}&end_date={end_date}&format=csv'
             print(url)
 
             self.source = pd.read_csv(url)
