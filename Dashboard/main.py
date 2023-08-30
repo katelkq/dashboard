@@ -25,9 +25,11 @@ def update(display):
     match display:
         case 'Heatmap':
             layout.children[1] = heatmap.get_plot()
+            timeseries.activate_update()
 
         case 'Timeseries':
             layout.children[1] = timeseries.get_plot()
+            heatmap.activate_update()
     
     pass
 

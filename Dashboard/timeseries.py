@@ -73,9 +73,7 @@ class TimeSeries(Graph):
         # create a new plot with a title and axis labels
         self.plot = figure(
             title='Time Series',
-            x_axis_label='Date',
             x_axis_type='datetime',
-            y_axis_label=var,
             y_range=(self.source[var].min() * 0.9, self.source[var].max() * 1.1),
             tools=[HoverTool(
                 tooltips=[
@@ -116,7 +114,7 @@ class TimeSeries(Graph):
         # customizing the plot
         self.plot.toolbar.logo = None
         #self.plot.yaxis.formatter = NumeralTickFormatter(format='0.00%')
-        self.plot.legend.location = 'right'
+        #self.plot.legend.location = 'right'
 
         pass
 
@@ -127,3 +125,8 @@ class TimeSeries(Graph):
     def get_plot(self):
         return self.plot
         pass
+
+    def activate_update(self):
+        self.controls.update.disabled = False
+        pass
+    

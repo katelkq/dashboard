@@ -116,6 +116,12 @@ class Heatmap(Graph):
         )
 
         # add multiple renderers
+        # TODO: controversy variables need reversed color
+        if 'Controvers' in self.control_status['color_var']:
+            colormap = linear_cmap(self.control_status['color_var'], heatmap_palette_reversed, 0, 100)
+        else:
+            colormap = linear_cmap(self.control_status['color_var'], heatmap_palette, 0, 100)
+
         self.plot.block(
             x='x',
             y='y',
@@ -123,7 +129,7 @@ class Heatmap(Graph):
             height='height',
             line_color='white',
             line_width=5,
-            fill_color=linear_cmap(self.control_status['color_var'], heatmap_palette, 0, 100),
+            fill_color=colormap,
             source=ColumnDataSource(self.source))
 
         # customizing the plot
@@ -133,7 +139,11 @@ class Heatmap(Graph):
 
         # adding a color bar
         # TODO: low and high needs adjustment with variable
-        color_mapper = LinearColorMapper(palette=heatmap_palette, low=0, high=100)
+        if 'Controvers' in self.control_status['color_var']:
+            color_mapper = LinearColorMapper(palette=heatmap_palette_reversed, low=0, high=100)
+        else:
+            color_mapper = LinearColorMapper(palette=heatmap_palette, low=0, high=100)
+        
         color_bar = ColorBar(color_mapper=color_mapper, label_standoff=12)
 
         labels_name = LabelSet(x='x', y='label_y', x_offset=10, y_offset=-25, text='name', text_color='white', source=ColumnDataSource(self.source.loc[self.source['height']>0.1]))
@@ -158,4 +168,8 @@ class Heatmap(Graph):
 
     def get_plot(self):
         return self.plot
+        pass
+
+    def activate_update(self):
+        self.controls.update.disabled = False
         pass
