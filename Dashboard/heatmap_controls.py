@@ -65,7 +65,7 @@ class HeatmapControls:
         self.size_var = Select(
             title='Size Variable', 
             value='Buzz', 
-            options=score_types
+            options=core
         )
         self.size_var.on_change('value', self.general_change_handler)
 
@@ -107,7 +107,7 @@ class HeatmapControls:
         self.color_var = Select(
             title='Color Variable', 
             value='ESG Overall Score', 
-            options=score_types
+            options=core
         )
         self.color_var.on_change('value', self.general_change_handler)
 
@@ -167,7 +167,7 @@ class HeatmapControls:
                 self.group_var.value = 'Sector'
                 self.group_var.options = ['Asset','Asset and score type']
                 self.color_var.value = 'ESG Overall Score'
-                self.color_var.options = score_types
+                self.color_var.options = core
                 self.color_var.disabled = False
                 self.color_checkbox.disabled = False
 
@@ -177,7 +177,7 @@ class HeatmapControls:
                 self.group_var.value = 'Asset'
                 self.group_var.options = ['Asset','Asset and score type']
                 self.color_var.value = 'ESG Overall Score'
-                self.color_var.options = score_types
+                self.color_var.options = core
                 self.color_var.disabled = False
                 self.color_checkbox.disabled = False
 
@@ -199,7 +199,7 @@ class HeatmapControls:
         match new:
             case 'Asset':
                 self.color_var.value = 'ESG Overall Score'
-                self.color_var.options = score_types
+                self.color_var.options = core
                 self.color_var.disabled = False
                 self.color_checkbox.disabled = False
 
@@ -239,8 +239,8 @@ class HeatmapControls:
 
     def update_handler(self):
         # potentially susceptible to code injection when rendering title without sanitizing user input!
-        self.update_graph()
         self.update.disabled = True
+        self.update_graph()
         pass
 
     def get_controls(self):
@@ -253,24 +253,59 @@ class HeatmapControls:
         so it's easier to pass around
         """
         # TODO: input validity checks
-        status = {}
-        status['title'] = self.title.value
-        status['scope'] = self.scope.value
-        status['scope_sector'] = self.scope_sector.value
-        status['scope_ticker'] = self.scope_ticker.value
-        status['group_var'] = self.group_var.value
-        status['size_var'] = self.size_var.value
-        status['size_checkbox'] = len(self.size_checkbox.active)
-        status['size_mean_range'] = self.size_mean_range.value
-        status['size_mean_unit'] = self.size_mean_unit.value
-        status['color_var'] = self.color_var.value
-        status['color_checkbox'] = len(self.color_checkbox.active)
-        status['color_mean_range'] = self.color_mean_range.value
-        status['color_mean_unit'] = self.color_mean_unit.value
+        self.status['title'] = self.title.value
+        self.status['scope'] = self.scope.value
+        self.status['scope_sector'] = self.scope_sector.value
+        self.status['scope_ticker'] = self.scope_ticker.value
+        self.status['group_var'] = self.group_var.value
 
-        # color_mean_start
-        # color_mean_end
+        if self.size_var.value in equcor_datacols['name'].values:
+            self.status['size_var'] = equcor_datacols.loc[equcor_datacols['name'] == self.size_var.value, 'code'].to_string(index=False)
+            self.status['size_var_core'] = True
+        else:
+            self.status['size_var'] = equesg_datacols.loc[equesg_datacols['name'] == self.size_var.value, 'code'].to_string(index=False)
+            self.status['size_var_core'] = False
 
+        self.status['size_checkbox'] = len(self.size_checkbox.active) != 0
+        # if checkbox
+        if self.status['size_checkbox']:
+            match self.size_mean_unit.value:
+                case 'days':
+                    days = int(self.size_mean_range.value)
+                case 'months':
+                    days = 30 * int(self.size_mean_range.value)
+                case 'years':
+                    days = 365 * int(self.size_mean_range.value)
 
-        return status
+            self.status['size_mean_start'] = datetime.date(datetime.now()) - timedelta(days=days)
+            self.status['size_mean_end'] = datetime.date(datetime.now())
+        else:
+            self.status['size_mean_start'] = datetime.date(datetime.now()) - timedelta(days=1)
+            self.status['size_mean_end'] = datetime.date(datetime.now())
+
+        if self.color_var.value in equcor_datacols['name'].values:
+            self.status['color_var'] = equcor_datacols.loc[equcor_datacols['name'] == self.color_var.value, 'code'].to_string(index=False)
+            self.status['color_var_core'] = True
+        else:
+            self.status['color_var'] = equesg_datacols.loc[equesg_datacols['name'] == self.color_var.value, 'code'].to_string(index=False)
+            self.status['color_var_core'] = False
+
+        self.status['color_checkbox'] = len(self.color_checkbox.active) != 0
+        # if checkbox
+        if self.status['color_checkbox']:
+            match self.color_mean_unit.value:
+                case 'days':
+                    days = int(self.color_mean_range.value)
+                case 'months':
+                    days = 30 * int(self.color_mean_range.value)
+                case 'years':
+                    days = 365 * int(self.color_mean_range.value)
+
+            self.status['color_mean_start'] = datetime.date(datetime.now()) - timedelta(days=days)
+            self.status['color_mean_end'] = datetime.date(datetime.now())
+        else:
+            self.status['color_mean_start'] = datetime.date(datetime.now()) - timedelta(days=1)
+            self.status['color_mean_end'] = datetime.date(datetime.now())
+
+        return self.status
         pass

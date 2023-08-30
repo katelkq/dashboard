@@ -58,20 +58,12 @@ make_pickles(equesg_freqs, nameof(equesg_freqs))
 sectors = sorted(list(equcor_assets['TRBCEconomicSector'].dropna().drop_duplicates()))
 make_pickles(sectors, nameof(sectors))
 
-tickers_by_sectors = {}
-for sector in sectors:
-    tickers_by_sectors[sector] = sorted(list(equcor_assets.loc[equcor_assets['TRBCEconomicSector'] == sector]['Ticker'].dropna().drop_duplicates()))
-make_pickles(tickers_by_sectors, nameof(tickers_by_sectors))
-
 tickers = sorted(list(equcor_assets['Ticker'].dropna().drop_duplicates()))
 make_pickles(tickers, nameof(tickers))
 
-score_types = sorted(list(pd.concat([equcor_datacols['name'], equesg_datacols['name']]).drop_duplicates()))
+core = sorted(list(equcor_datacols['name']))
+advanced = sorted(list(equesg_datacols['name']))
 
-core = set(equcor_datacols['name'])
-advanced = set(equesg_datacols['name'])
-
-make_pickles(score_types, nameof(score_types))
 make_pickles(core, nameof(core))
 make_pickles(advanced, nameof(advanced))
 
