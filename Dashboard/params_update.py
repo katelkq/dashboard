@@ -65,12 +65,10 @@ with open('./lib/tickers_by_sectors.pickle', 'wb') as handle:
 
 tickers = sorted(list(equcor_assets['Ticker'].dropna().drop_duplicates()))
 
-print(tickers)
-
 with open('./lib/tickers.pickle', 'wb') as handle:
     pickle.dump(tickers, handle, protocol=pickle.DEFAULT_PROTOCOL)
 
-score_types = sorted(list(equcor_datacols['name']) + list(equesg_datacols['name']))
+score_types = sorted(list(pd.concat([equcor_datacols['name'], equesg_datacols['name']]).drop_duplicates()))
 
 with open('./lib/score_types.pickle', 'wb') as handle:
     pickle.dump(score_types, handle, protocol=pickle.DEFAULT_PROTOCOL)

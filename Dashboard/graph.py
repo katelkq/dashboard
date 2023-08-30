@@ -6,9 +6,13 @@ class Graph:
     def __init__(self, update_main):
         self.update_main = update_main
 
+        self.init_controls()
         self.fetch_data()
         self.preprocess()
         self.render()
+        pass
+
+    def init_controls(self):
         pass
 
     def update(self):

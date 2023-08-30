@@ -5,7 +5,7 @@ from bokeh.plotting import *
 from bokeh.transform import linear_cmap
 from utilities import *
 from datetime import datetime, timedelta
-from controls import Controls
+from controls import HeatmapControls
 import numpy as np
 from params import *
 
@@ -26,7 +26,7 @@ class TimeSeries(Graph):
     def __init__(self, index, update_main):
         self.index = index
         self.type = 'heatmap'
-        self.controls = Controls(index, self.update)
+        self.controls = HeatmapControls(index, self.update)
         self.update_main = update_main
         self.control_status = self.controls.get_status()
 

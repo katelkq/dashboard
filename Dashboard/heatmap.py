@@ -5,7 +5,7 @@ from bokeh.plotting import *
 from bokeh.transform import linear_cmap
 from utilities import *
 from datetime import datetime, timedelta
-from controls import Controls
+from heatmap_controls import HeatmapControls
 import numpy as np
 from params import *
 from graph import Graph
@@ -24,18 +24,10 @@ class Heatmap(Graph):
     preprocessing to derive heatmap related metrics (not needed for timeseries)
     """
 
-    def __init__(self, update_main):
-        self.index = 1
-        self.type = 'heatmap'
-        self.controls = Controls(1, self.update)
-        self.update_main = update_main
+    def init_controls(self):
+        self.controls = HeatmapControls(1, self.update)
         self.control_status = self.controls.get_status()
-
-        self.fetch_data()
-        self.preprocess()
-        self.render()
         pass
-
 
     def update(self, control_status):
         if DEBUG:
@@ -44,16 +36,10 @@ class Heatmap(Graph):
 
         self.control_status = control_status
 
-        match control_status['type_of_graph']:
-            case 'Heatmap':
-                self.preprocess()
-                self.render()
+        self.preprocess()
+        self.render()
 
-            case 'Timeseries':
-                self.preprocess_timeseries()
-                self.render_timeseries()
-
-        self.update_main(self.index)
+        self.update_main('Heatmap')
         pass
 
     def fetch_data(self):
@@ -62,8 +48,8 @@ class Heatmap(Graph):
         if True or self.control_status['color_var'] in equcor_datacols['name']:
             print('Fetching!')
 
-            start_date = self.control_status['start']
-            end_date = self.control_status['end']
+            start_date = datetime.date(datetime.now()) - timedelta(days=1)
+            end_date = datetime.date(datetime.now())
 
             url = f'https://dataapi.marketpsych.com/esg/v4/data/equcor/dai/all?apikey={API_KEY}&start_date={start_date}&end_date={end_date}&datacols=buzz,ESG&format=csv'
             print(url)
