@@ -5,12 +5,13 @@ from bokeh.plotting import *
 from bokeh.transform import linear_cmap
 from utilities import *
 from datetime import datetime, timedelta
-from controls import HeatmapControls
+from timeseries_controls import TimeSeriesControls
+from graph import Graph
 import numpy as np
 from params import *
 
 API_KEY = 'rf_1nMfaWdyWfpmtWB9dRE'
-DEBUG = False
+DEBUG = True
 
 class TimeSeries(Graph):
     """
@@ -23,90 +24,98 @@ class TimeSeries(Graph):
     preprocessing to derive heatmap related metrics (not needed for timeseries)
     """
 
-    def __init__(self, index, update_main):
-        self.index = index
-        self.type = 'heatmap'
-        self.controls = HeatmapControls(index, self.update)
-        self.update_main = update_main
+    def init_controls(self):
+        self.controls = TimeSeriesControls(self.update)
         self.control_status = self.controls.get_status()
-
-        self.fetch_data()
-        self.preprocess_heatmap()
-        self.render_heatmap()
         pass
 
-    def update(self, control_status):
-        if DEBUG:
-            for (key, value) in control_status.items():
+    def update(self):
+        self.control_status = self.controls.get_status()
+
+        if DEBUG: # prints the items in control_status
+            for (key, value) in self.control_status.items():
                 print(f'Key: {key}, value: {value}, type: {type(value)}')
 
-        self.control_status = control_status
+        self.fetch_data()
+        self.preprocess()
+        self.render()
 
-        match control_status['type_of_graph']:
-            case 'Heatmap':
-                self.preprocess_heatmap()
-                self.render_heatmap()
-
-            case 'Timeseries':
-                self.preprocess()
-                self.render()
-
-        self.update_main(self.index)
+        self.update_main('Timeseries')
         pass
 
     def fetch_data(self):
-        print(self.control_status['color_var'])
+        # asset code, variable, date range
+        url = f"https://dataapi.marketpsych.com/esg/v4/data/equcor/dai/{self.control_status['asset']}?apikey={API_KEY}&start_date={self.control_status['start_date']}&end_date={self.control_status['end_date']}&datacols={self.control_status['var']}&format=csv"
 
-        if True or self.control_status['color_var'] in equcor_datacols['name']:
-            print('Fetching!')
+        if DEBUG: print(url)
+        self.source = pd.read_csv(url)
+        self.source['windowTimestamp'] = pd.to_datetime(self.source['windowTimestamp'])
 
-            start_date = self.control_status['start']
-            end_date = self.control_status['end']
-
-            url = f'https://dataapi.marketpsych.com/esg/v4/data/equcor/dai/all?apikey={API_KEY}&start_date={start_date}&end_date={end_date}&datacols=buzz,ESG&format=csv'
-            print(url)
-
-            self.source = pd.read_csv(url)
-
-
+        if DEBUG: # prints the data as freshly fetched from Refinitiv
+            print(self.source)
         pass
 
     def preprocess(self):
-        self.source = pd.read_csv('./Dashboard/sample_data/4295905573.csv')
-        self.source = pd.concat([self.source]*5, ignore_index=True)
+        if self.control_status['mean_checkbox']:
+            var = self.control_status['var']
+            days = self.control_status['mean_days']
 
-        delta = np.repeat(np.arange(0,5),4)
-        self.source['windowTimestamp'] = pd.to_datetime(self.source['windowTimestamp']) + pd.to_timedelta(delta, unit='day')
-        nums = list(self.source.columns)[6:]
-        self.source[nums] = self.source[nums].apply(lambda x: np.random.normal(loc=x, scale=0.2*np.abs(x)))
+            self.source[f'{var}_{days}d_mean'] = self.source.rolling(days)[var].mean()
+            self.source[f'{var}_{days}d_std'] = self.source.rolling(days)[var].std()
+
+            self.outliers = self.source.loc[(self.source[var] - self.source[f'{var}_{days}d_mean']).abs() > 2 * self.source[f'{var}_{days}d_std']]
+
         pass
 
     def render(self):
+        var = self.control_status['var']
 
         # create a new plot with a title and axis labels
         self.plot = figure(
-            title="Timeseries example",
-            x_axis_label="Time",
+            title='Time Series',
+            x_axis_label='Date',
             x_axis_type='datetime',
-            y_axis_label="Management Sentiment",
-            toolbar_location = "above",
-            tools=[HoverTool()],
-            tooltips="(@x,@y)"
+            y_axis_label=var,
+            y_range=(self.source[var].min() * 0.9, self.source[var].max() * 1.1),
+            tools=[HoverTool(
+                tooltips=[
+                    ('Date', '@windowTimestamp{%F}'),
+                    (var, f'@{var}')
+                ],
+                formatters={'@windowTimestamp': 'datetime'}),SaveTool()],
+            
+            width=1400,
+            height=900
         )
 
         # add renderers
-        self.plot.line(self.source.loc[self.source['dataType'] == 'News', 'windowTimestamp'], self.source.loc[self.source['dataType'] == 'News', 'managementSentiment'], legend_label="News", color="steelblue", line_width=2)
-        self.plot.circle(self.source.loc[self.source['dataType'] == 'News', 'windowTimestamp'], self.source.loc[self.source['dataType'] == 'News', 'managementSentiment'], color="steelblue", size=5)
-        self.plot.line(self.source.loc[self.source['dataType'] == 'News_Headline', 'windowTimestamp'], self.source.loc[self.source['dataType'] == 'News_Headline', 'managementSentiment'], legend_label="News_Headline", color="pink", line_width=2)
-        self.plot.circle(self.source.loc[self.source['dataType'] == 'News_Headline', 'windowTimestamp'], self.source.loc[self.source['dataType'] == 'News_Headline', 'managementSentiment'], color="pink", size=5)
-        self.plot.line(self.source.loc[self.source['dataType'] == 'News_Social', 'windowTimestamp'], self.source.loc[self.source['dataType'] == 'News_Social', 'managementSentiment'], legend_label="News_Social", color="magenta", line_width=2)
-        self.plot.circle(self.source.loc[self.source['dataType'] == 'News_Social', 'windowTimestamp'], self.source.loc[self.source['dataType'] == 'News_Social', 'managementSentiment'], color="magenta", size=5)
-        self.plot.line(self.source.loc[self.source['dataType'] == 'Social', 'windowTimestamp'], self.source.loc[self.source['dataType'] == 'Social', 'managementSentiment'], legend_label="Social", color="lime", line_width=2)
-        self.plot.circle(self.source.loc[self.source['dataType'] == 'Social', 'windowTimestamp'], self.source.loc[self.source['dataType'] == 'Social', 'managementSentiment'], color="lime", size=5)
+        self.plot.vbar(
+            x='windowTimestamp',
+            top=var,
+            source=ColumnDataSource(self.source)
+        )
+
+        if self.control_status['mean_checkbox']:
+            self.plot.vbar(
+                x='windowTimestamp',
+                top=var,
+                color='lime',
+                source=ColumnDataSource(self.outliers)
+            )
+
+        self.plot.line(
+            x='windowTimestamp',
+            y=var,
+            legend_label=var,
+            line_width=2,
+            source=ColumnDataSource(self.source)
+        )
+        #self.plot.line(self.source.loc[self.source['dataType'] == 'News', 'windowTimestamp'], self.source.loc[self.source['dataType'] == 'News', 'managementSentiment'], legend_label="News", color="steelblue", line_width=2)
+        #self.plot.circle(self.source.loc[self.source['dataType'] == 'News', 'windowTimestamp'], self.source.loc[self.source['dataType'] == 'News', 'managementSentiment'], color="steelblue", size=5)
 
         # customizing the plot
         self.plot.toolbar.logo = None
-        self.plot.yaxis.formatter = NumeralTickFormatter(format='0.00%')
+        #self.plot.yaxis.formatter = NumeralTickFormatter(format='0.00%')
         self.plot.legend.location = 'right'
 
         pass

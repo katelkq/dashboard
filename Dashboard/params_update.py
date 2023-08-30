@@ -58,8 +58,8 @@ make_pickles(equesg_freqs, nameof(equesg_freqs))
 sectors = sorted(list(equcor_assets['TRBCEconomicSector'].dropna().drop_duplicates()))
 make_pickles(sectors, nameof(sectors))
 
-tickers = sorted(list(equcor_assets['Ticker'].dropna().drop_duplicates()))
-make_pickles(tickers, nameof(tickers))
+assets = sorted(list(equcor_assets['name'].dropna().drop_duplicates()))
+make_pickles(assets, nameof(assets))
 
 core = sorted(list(equcor_datacols['name']))
 advanced = sorted(list(equesg_datacols['name']))

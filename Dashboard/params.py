@@ -10,11 +10,8 @@ import pickle
 with open('./lib/sectors.pickle', 'rb') as handle:
     sectors = pickle.load(handle)
 
-with open('./lib/tickers_by_sectors.pickle', 'rb') as handle:
-    tickers_by_sectors = pickle.load(handle)
-
-with open('./lib/tickers.pickle', 'rb') as handle:
-    tickers = pickle.load(handle)
+with open('./lib/assets.pickle', 'rb') as handle:
+    assets = pickle.load(handle)
 
 with open('./lib/core.pickle', 'rb') as handle:
     core = pickle.load(handle)
@@ -27,3 +24,7 @@ with open('./lib/equcor_datacols.pickle', 'rb') as handle:
 
 with open('./lib/equesg_datacols.pickle', 'rb') as handle:
     equesg_datacols = pickle.load(handle)
+
+with open('./lib/equcor_assets.pickle', 'rb') as handle:
+    equcor_assets = pickle.load(handle)
+

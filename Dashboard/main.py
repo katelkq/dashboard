@@ -3,6 +3,7 @@ from bokeh.layouts import column, row
 from bokeh.models import Button, Select, Div, Tabs, TabPanel
 from functools import partial
 from heatmap import Heatmap
+from timeseries import TimeSeries
 
 curdoc().title = "Dashboard"
 
@@ -23,24 +24,25 @@ def update(display):
     """
     match display:
         case 'Heatmap':
-            layout.children[1] = graph.get_plot()
+            layout.children[1] = heatmap.get_plot()
 
         case 'Timeseries':
-            layout.children[1] = graph.get_plot()
+            layout.children[1] = timeseries.get_plot()
     
     pass
 
 # initializing control area layout
 control_panel = Tabs(tabs=[])
-control_area = column(header, control_panel, width=350)
+control_area = column(header, control_panel, width=400)
 
-graph = Heatmap(update_main=update)
+heatmap = Heatmap(update_main=update)
+timeseries = TimeSeries(update_main=update)
 
 # adding graph controls to the control panel
-control_panel.tabs.append(TabPanel(title='Heatmap', child=graph.get_controls()))
-#control_panel.tabs.append(TabPanel(title='Time Series', child=graph.get_controls()))
+control_panel.tabs.append(TabPanel(title='Heatmap', child=heatmap.get_controls()))
+control_panel.tabs.append(TabPanel(title='Time Series', child=timeseries.get_controls()))
 
-layout = row(control_area, graph.get_plot())
+layout = row(control_area, heatmap.get_plot())
 
 curdoc().add_root(layout)
 

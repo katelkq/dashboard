@@ -11,7 +11,7 @@ from params import *
 from graph import Graph
 
 API_KEY = 'rf_1nMfaWdyWfpmtWB9dRE'
-DEBUG = True
+DEBUG = False
 
 class Heatmap(Graph):
     """
@@ -44,10 +44,6 @@ class Heatmap(Graph):
         pass
 
     def fetch_data(self):
-        if DEBUG: # prints the items in control_status
-            for (key, value) in self.control_status.items():
-                print(f'Key: {key}, value: {value}, type: {type(value)}')
-
         start_date = min(self.control_status['size_mean_start'], self.control_status['color_mean_start'])
         end_date = max(self.control_status['size_mean_end'], self.control_status['color_mean_end'])
         url = f"https://dataapi.marketpsych.com/esg/v4/data/equcor/dai/all?apikey={API_KEY}&start_date={start_date}&end_date={end_date}&datacols={self.control_status['size_var']},{self.control_status['color_var']}&format=csv"
@@ -103,7 +99,7 @@ class Heatmap(Graph):
 
         self.source['label_y'] = self.source['y'] + self.source['height']
 
-        print(self.source)
+        if DEBUG: print(self.source)
         pass
 
     def render(self):

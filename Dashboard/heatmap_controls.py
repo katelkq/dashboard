@@ -39,21 +39,21 @@ class HeatmapControls:
         self.scope.on_change('value', self.scope_handler)
         
         self.scope_sector = Select(
-            title='Group', 
+            title='Sector', 
             value='Consumer Discretionary', 
             options=sectors, 
             visible=False
         )
         self.scope_sector.on_change('value', self.general_change_handler)
         
-        self.scope_ticker = AutocompleteInput(
-            title='Group', 
+        self.scope_asset = AutocompleteInput(
+            title='Asset', 
             placeholder='Input name of the asset...', 
-            completions=tickers, 
+            completions=assets, 
             search_strategy='includes', 
             visible=False
         )
-        self.scope_ticker.on_change('value', self.general_change_handler)
+        self.scope_asset.on_change('value', self.general_change_handler)
 
         self.group_var = Select(
             title='Group Variable', 
@@ -139,7 +139,7 @@ class HeatmapControls:
 
         self.controls = column(
             self.title,
-            row(self.scope, self.scope_sector, self.scope_ticker), 
+            row(self.scope, self.scope_sector, self.scope_asset), 
             self.group_var, 
             self.size_var, 
             self.size_checkbox,
@@ -163,7 +163,7 @@ class HeatmapControls:
         match new:
             case 'All':
                 self.scope_sector.visible = False
-                self.scope_ticker.visible = False
+                self.scope_asset.visible = False
                 self.group_var.value = 'Sector'
                 self.group_var.options = ['Asset','Asset and score type']
                 self.color_var.value = 'ESG Overall Score'
@@ -173,7 +173,7 @@ class HeatmapControls:
 
             case 'Sector':
                 self.scope_sector.visible = True
-                self.scope_ticker.visible = False
+                self.scope_asset.visible = False
                 self.group_var.value = 'Asset'
                 self.group_var.options = ['Asset','Asset and score type']
                 self.color_var.value = 'ESG Overall Score'
@@ -183,7 +183,7 @@ class HeatmapControls:
 
             case 'Asset':
                 self.scope_sector.visible = False
-                self.scope_ticker.visible = True
+                self.scope_asset.visible = True
                 self.group_var.value = 'Score type'
                 self.group_var.options = ['Score type']
                 self.color_var.value = '-'
@@ -256,7 +256,7 @@ class HeatmapControls:
         self.status['title'] = self.title.value
         self.status['scope'] = self.scope.value
         self.status['scope_sector'] = self.scope_sector.value
-        self.status['scope_ticker'] = self.scope_ticker.value
+        self.status['scope_ticker'] = self.scope_asset.value
         self.status['group_var'] = self.group_var.value
 
         if self.size_var.value in equcor_datacols['name'].values:
