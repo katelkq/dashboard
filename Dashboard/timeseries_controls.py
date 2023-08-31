@@ -78,6 +78,16 @@ class TimeSeriesControls:
                 position="right"
             )
         )
+
+        self.std = Spinner(
+            title='Number of standard deviations from mean: ',
+            value=1,
+            low=0,
+            step=0.25,
+            width=100,
+            disabled=True
+        )
+        self.std.on_change('value', self.general_change_handler)
         
         self.start_date = DatePicker(
             title='Start Date',
@@ -105,6 +115,7 @@ class TimeSeriesControls:
             self.mean_checkbox,
             self.mean,
             row(self.mean_range, self.mean_unit, self.mean_help),
+            row(self.std),
             row(self.start_date, self.end_date),
             self.update
         )
@@ -121,10 +132,12 @@ class TimeSeriesControls:
             case 0:
                 self.mean_range.disabled = True
                 self.mean_unit.disabled = True
+                self.std.disabled = True
 
             case 1:
                 self.mean_range.disabled = False
                 self.mean_unit.disabled = False
+                self.std.disabled = False
         pass
 
     def update_handler(self):
@@ -165,6 +178,8 @@ class TimeSeriesControls:
                     self.status['mean_days'] = 30 * int(self.mean_range.value)
                 case 'years':
                     self.status['mean_days'] = 365 * int(self.mean_range.value)
+
+        self.status['std'] = float(self.std.value)
 
         self.status['start_date'] = self.start_date.value
         self.status['end_date'] = self.end_date.value

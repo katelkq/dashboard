@@ -11,7 +11,7 @@ import numpy as np
 from params import *
 
 API_KEY = 'rf_1nMfaWdyWfpmtWB9dRE'
-DEBUG = True
+DEBUG = False
 
 class TimeSeries(Graph):
     """
@@ -63,7 +63,7 @@ class TimeSeries(Graph):
             self.source[f'{var}_{days}d_mean'] = self.source.rolling(days)[var].mean()
             self.source[f'{var}_{days}d_std'] = self.source.rolling(days)[var].std()
 
-            self.outliers = self.source.loc[(self.source[var] - self.source[f'{var}_{days}d_mean']).abs() > 2 * self.source[f'{var}_{days}d_std']]
+            self.outliers = self.source.loc[(self.source[var] - self.source[f'{var}_{days}d_mean']).abs() > self.control_status['std'] * self.source[f'{var}_{days}d_std']]
 
         pass
 
@@ -129,4 +129,3 @@ class TimeSeries(Graph):
     def activate_update(self):
         self.controls.update.disabled = False
         pass
-    

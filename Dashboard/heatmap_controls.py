@@ -40,7 +40,7 @@ class HeatmapControls:
         
         self.scope_sector = Select(
             title='Sector', 
-            value='Consumer Discretionary', 
+            value=sectors[0], 
             options=sectors, 
             visible=False
         )
@@ -58,7 +58,7 @@ class HeatmapControls:
         self.group_var = Select(
             title='Group Variable', 
             value='Asset', 
-            options=['Asset', 'Asset and score type']
+            options=['Asset']
         )
         self.group_var.on_change('value', self.group_var_handler)
 
@@ -71,7 +71,8 @@ class HeatmapControls:
 
         self.size_checkbox = CheckboxGroup(
             labels=['Assign size by magnitude of deviation from mean'],
-            active=[]
+            active=[],
+            disabled=True
         )
         self.size_checkbox.on_change('active', self.size_checkbox_change_handler)
 
@@ -85,12 +86,14 @@ class HeatmapControls:
             width=50,
             disabled=True
         )
+        self.size_mean_range.on_change('value', self.general_change_handler)
 
         self.size_mean_unit = Select(
             value='days',
             options=['days','months','years'],
             disabled=True
         )
+        self.size_mean_unit.on_change('value', self.general_change_handler)
 
         self.size_mean_help = HelpButton(
             tooltip=Tooltip(
@@ -113,7 +116,8 @@ class HeatmapControls:
 
         self.color_checkbox = CheckboxGroup(
             labels=['Assign color by relative deviation from mean'],
-            active=[]
+            active=[],
+            disabled=True
         )
         self.color_checkbox.on_change('active', self.color_checkbox_change_handler)
 
@@ -127,13 +131,27 @@ class HeatmapControls:
             width=50,
             disabled=True
         )
+        self.color_mean_range.on_change('value', self.general_change_handler)
 
         self.color_mean_unit = Select(
             value='days',
             options=['days','months','years'],
             disabled=True
         )
+        self.color_mean_unit.on_change('value', self.general_change_handler)
         
+        self.color_mean_help = HelpButton(
+            tooltip=Tooltip(
+                content=HTML(
+                """
+                This is a tooltip with additional information.<br />
+                It can use <b>HTML tags</b> like <a href="https://bokeh.org">links</a>!
+                """
+                ),
+                position="right"
+            )
+        )
+
         self.update = Button(disabled=True, label='Show Results')
         self.update.on_click(self.update_handler)
 
@@ -148,7 +166,7 @@ class HeatmapControls:
             self.color_var, 
             self.color_checkbox,
             self.color_mean,
-            row(self.color_mean_range, self.color_mean_unit),
+            row(self.color_mean_range, self.color_mean_unit, self.color_mean_help),
             self.update
         )
         pass
@@ -164,33 +182,73 @@ class HeatmapControls:
             case 'All':
                 self.scope_sector.visible = False
                 self.scope_asset.visible = False
+
                 self.group_var.value = 'Sector'
-                self.group_var.options = ['Asset','Asset and score type']
+                self.group_var.options = ['Asset']
+
+                self.size_var.value = 'Buzz'
+                self.size_var.options = core
+                self.size_var.disabled = False
+                
+                self.size_checkbox.active = []
+                self.size_checkbox.disabled = True
+                self.size_mean_range.disabled = True
+                self.size_mean_unit.disabled = True
+
                 self.color_var.value = 'ESG Overall Score'
                 self.color_var.options = core
                 self.color_var.disabled = False
-                self.color_checkbox.disabled = False
+
+                self.color_checkbox.active = []
+                self.color_checkbox.disabled = True
+                self.color_mean_range.disabled = True
+                self.color_mean_unit.disabled = True
 
             case 'Sector':
                 self.scope_sector.visible = True
                 self.scope_asset.visible = False
+
                 self.group_var.value = 'Asset'
                 self.group_var.options = ['Asset','Asset and score type']
+
+                self.size_var.value = 'Buzz'
+                self.size_var.options = core
+                self.size_var.disabled = False
+
+                self.size_checkbox.active = []
+                self.size_checkbox.disabled = True
+                self.size_mean_range.disabled = True
+                self.size_mean_unit.disabled = True
+
                 self.color_var.value = 'ESG Overall Score'
                 self.color_var.options = core
                 self.color_var.disabled = False
-                self.color_checkbox.disabled = False
+
+                self.color_checkbox.active = []
+                self.color_checkbox.disabled = True
+                self.color_mean_range.disabled = True
+                self.color_mean_unit.disabled = True
 
             case 'Asset':
                 self.scope_sector.visible = False
                 self.scope_asset.visible = True
+
                 self.group_var.value = 'Score type'
                 self.group_var.options = ['Score type']
+
+                self.size_var.value = '-'
+                self.size_var.options = ['-']
+                self.size_var.disabled = True
+
+                self.size_checkbox.active = []
+                self.size_checkbox.disabled = False
+
                 self.color_var.value = '-'
                 self.color_var.options = ['-']
                 self.color_var.disabled = True
+
                 self.color_checkbox.active = []
-                self.color_checkbox.disabled = True
+                self.color_checkbox.disabled = False
         pass
 
     def group_var_handler(self, attr, old, new):
@@ -254,7 +312,19 @@ class HeatmapControls:
         """
         # TODO: input validity checks
         self.status['title'] = self.title.value
+
         self.status['scope'] = self.scope.value
+
+        # handle asset_code
+        match self.status['scope']:
+
+                # TODO: if Sector, query then filter?
+                # TODO: activate checkbox only with scope = Asset
+
+            case 'Asset':
+                self.status['asset_code'] = equcor_assets.loc[equcor_assets['name'] == self.scope_asset.value, 'assetCode'].to_string(index=False)
+
+        
         self.status['scope_sector'] = self.scope_sector.value
         self.status['scope_ticker'] = self.scope_asset.value
         self.status['group_var'] = self.group_var.value
