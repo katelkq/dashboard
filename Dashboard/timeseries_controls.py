@@ -53,7 +53,7 @@ class TimeSeriesControls:
         )
 
         self.mean_range = NumericInput(
-            value=30,
+            value=90,
             low=1,
             width=50,
             disabled=True
@@ -81,7 +81,7 @@ class TimeSeriesControls:
 
         self.std = Spinner(
             title='Number of standard deviations from mean: ',
-            value=1,
+            value=1.5,
             low=0,
             step=0.25,
             width=100,

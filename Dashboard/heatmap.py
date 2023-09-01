@@ -12,7 +12,7 @@ from graph import Graph
 
 # TODO: get authentication stuff into a separate file
 API_KEY = 'rf_1nMfaWdyWfpmtWB9dRE'
-DEBUG = False
+DEBUG = True
 
 class Heatmap(Graph):
     """
@@ -233,7 +233,7 @@ class Heatmap(Graph):
 
             # adding a color bar
             # TODO: low and high needs adjustment with each specific variable? (is this the case for Core variables, though?)
-            if 'Controvers' in color_var:
+            if False and 'Controvers' in color_var: # disabling this -> only needed for Advanced Controversy variables
                 color_mapper = LinearColorMapper(palette=heatmap_palette_reversed, low=0, high=100)
             else:
                 color_mapper = LinearColorMapper(palette=heatmap_palette, low=0, high=100)
