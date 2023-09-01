@@ -7,24 +7,24 @@ wrapper for access I suppose
 
 import pickle
 
-with open('./lib/sectors.pickle', 'rb') as handle:
+with open('./Dashboard/lib/sectors.pickle', 'rb') as handle:
     sectors = pickle.load(handle)
 
-with open('./lib/assets.pickle', 'rb') as handle:
+with open('./Dashboard/lib/assets.pickle', 'rb') as handle:
     assets = pickle.load(handle)
 
-with open('./lib/core.pickle', 'rb') as handle:
+with open('./Dashboard/lib/core.pickle', 'rb') as handle:
     core = pickle.load(handle)
 
-with open('./lib/advanced.pickle', 'rb') as handle:
+with open('./Dashboard/lib/advanced.pickle', 'rb') as handle:
     advanced = pickle.load(handle)
 
-with open('./lib/equcor_datacols.pickle', 'rb') as handle:
+with open('./Dashboard/lib/equcor_datacols.pickle', 'rb') as handle:
     equcor_datacols = pickle.load(handle)
 
-with open('./lib/equesg_datacols.pickle', 'rb') as handle:
+with open('./Dashboard/lib/equesg_datacols.pickle', 'rb') as handle:
     equesg_datacols = pickle.load(handle)
 
-with open('./lib/equcor_assets.pickle', 'rb') as handle:
+with open('./Dashboard/lib/equcor_assets.pickle', 'rb') as handle:
     equcor_assets = pickle.load(handle)
 

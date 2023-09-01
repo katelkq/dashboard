@@ -13,10 +13,10 @@ API_KEY = 'rf_1nMfaWdyWfpmtWB9dRE'
 def make_pickles(var, var_name):
     """
     Makes a pickle out of the item passed in
-    Stores it under ./lib/
+    Stores it under ./Dashboard/lib/
     """
     print(f'Pickled {var_name}.')
-    with open(f'./lib/{var_name}.pickle', 'wb') as handle:
+    with open(f'./Dashboard/lib/{var_name}.pickle', 'wb') as handle:
         pickle.dump(var, handle, protocol=pickle.DEFAULT_PROTOCOL)
     pass
 
