@@ -211,7 +211,7 @@ class Heatmap(Graph):
             )
 
             # add multiple renderers
-            if 'Controvers' in self.control_status['color_var']:
+            if False and 'Controvers' in color_var: # disabling this -> only needed for Advanced Controversy variables
                 colormap = linear_cmap(color_var, heatmap_palette_reversed, 0, 100)
             else:
                 colormap = linear_cmap(color_var, heatmap_palette, 0, 100)
