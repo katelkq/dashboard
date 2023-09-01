@@ -1,30 +1,18 @@
-"""
-will have a bunch of different lists of option
-serve on demand
-by calling functions and telling them where you are in the decision tree
-pass in the handles of these widgets directly?
-these should be updated on each update
-my brain is undergoing spontaneous combustion no
-"""
-
-from bokeh.io import curdoc
-from bokeh.models import *
-from bokeh.plotting import *
-from bokeh.transform import linear_cmap
 from bokeh.layouts import column, row
-from utilities import heatmap_palette
-from datetime import datetime, timedelta
+from bokeh.models import Tooltip
 from bokeh.models.dom import HTML
+from bokeh.models.widgets import *
+from datetime import datetime, timedelta
 
 from params import *
 
 class HeatmapControls:
+    """
+    Contain control widgets for the heatmap and implement control logic.
+
+    """
 
     def __init__(self, update_graph):
-        """
-        Initializes the layout of the control widgets.
-        """
-
         self.update_graph = update_graph
         self.status = {}
 
@@ -102,6 +90,7 @@ class HeatmapControls:
         )
         self.size_mean_unit.on_change('value', self.general_change_handler)
 
+        # TODO: add help message
         self.size_mean_help = HelpButton(
             tooltip=Tooltip(
                 content=HTML(
@@ -151,6 +140,7 @@ class HeatmapControls:
         )
         self.color_mean_unit.on_change('value', self.general_change_handler)
         
+        # TODO: add help message
         self.color_mean_help = HelpButton(
             tooltip=Tooltip(
                 content=HTML(
@@ -184,13 +174,24 @@ class HeatmapControls:
         pass
 
     def general_change_handler(self, attr, old, new):
+        """
+        Make update button clickable after changes to control status.
+        
+        """
+
         self.update.disabled = False
         pass
 
     def scope_handler(self, attr, old, new):
+        """
+        Propagate changes to other widgets after the scope of the graph has been changed.
+        
+        """
+
         self.update.disabled = False
 
         match new:
+            # when we want to plot the scores for a single asset
             case 'Asset':
                 self.scope_sector.visible = False
                 self.scope_asset.visible = True
@@ -248,8 +249,10 @@ class HeatmapControls:
 
     def group_var_handler(self, attr, old, new):
         """
-        This is, in effect, currently not in use.
-        Might be handy for doing extensions on Group Variable, though.
+        Currently not in use.
+        
+        Can potentially be revived, if we want to allow each block to contain information on one specific score from one specific asset, within a limited universe e.g. a single sector. This would allow the user to see the bigger picture from a bigger universe.
+
         """
 
         self.update.disabled = False
@@ -261,6 +264,7 @@ class HeatmapControls:
                 self.color_var.disabled = False
                 self.color_checkbox.disabled = False
 
+            # deprecated branch. maybe it will be revived some day?
             case 'Asset and score type':
                 self.color_var.value = '-'
                 self.color_var.options = ['-']
@@ -296,6 +300,11 @@ class HeatmapControls:
         pass
 
     def update_handler(self):
+        """
+        Disable the update button and initiate the update of graph.
+        
+        """
+
         self.update.disabled = True
         self.update_graph()
         pass
@@ -306,14 +315,15 @@ class HeatmapControls:
 
     def get_status(self):
         """
-        This method collects all the control data into a single dictionary
-        so it's easier to pass around
+        Return a dictionary of the current control status.
+        
         """
+
         # TODO: input validity checks and error messages
         self.status['title'] = self.title.value
         self.status['scope'] = self.scope.value
 
-        # handle single asset_code
+        # map asset name to assetCode, if needed
         if self.status['scope'] == 'Asset':
             self.status['asset_code'] = equcor_assets.loc[equcor_assets['name'] == self.scope_asset.value, 'assetCode'].to_string(index=False)
         
@@ -336,6 +346,8 @@ class HeatmapControls:
             match self.size_mean_unit.value:
                 case 'days':
                     days = int(self.size_mean_range.value)
+                case 'weeks':
+                    days = 7 * int(self.size_mean_range.value)
                 case 'months':
                     days = 30 * int(self.size_mean_range.value)
                 case 'years':
@@ -348,7 +360,7 @@ class HeatmapControls:
             self.status['size_mean_start'] = datetime.date(datetime.now()) - timedelta(days=1)
             self.status['size_mean_end'] = datetime.date(datetime.now())
 
-        # similarly else branch not in use
+        # similarly, else branch not in use
         if self.color_var.value in equcor_datacols['name'].values:
             self.status['color_var'] = equcor_datacols.loc[equcor_datacols['name'] == self.color_var.value, 'code'].to_string(index=False)
             self.status['color_var_core'] = True
@@ -358,11 +370,13 @@ class HeatmapControls:
 
         self.status['color_checkbox'] = len(self.color_checkbox.active) != 0
 
-        # if checkbox is ticked
+        # if checkbox is ticked, extend time range of query as appropriate
         if self.status['color_checkbox']:
             match self.color_mean_unit.value:
                 case 'days':
                     days = int(self.color_mean_range.value)
+                case 'weeks':
+                    days = 7 * int(self.color_mean_range.value)
                 case 'months':
                     days = 30 * int(self.color_mean_range.value)
                 case 'years':

@@ -1,0 +1,6 @@
+﻿graph.Graph.init\_controls
+==========================
+
+.. currentmodule:: graph
+
+.. automethod:: Graph.init_controls

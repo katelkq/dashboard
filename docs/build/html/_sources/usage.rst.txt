@@ -1,0 +1,11 @@
+Usage
+=====
+
+Installing Dependencies
+-----------------------
+
+Run the following command within the main folder:
+
+.. code-block:: console
+
+    $ pip install -r ./requirements.txt

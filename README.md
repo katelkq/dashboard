@@ -1,7 +1,5 @@
-# How to launch
-Type
-    bokeh serve --show Dashboard
-from a parent directory of the Dashboard folder. The app will be opened in the browser.
+# Documentation
+Available
 
 # Dependencies
 pip install -r ./Dashboard/requirements.txt

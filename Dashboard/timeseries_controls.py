@@ -1,19 +1,16 @@
-from bokeh.models import *
-from bokeh.models.dom import HTML
 from bokeh.layouts import column, row
-from bokeh.plotting import *
+from bokeh.models import Tooltip
+from bokeh.models.dom import HTML
+from bokeh.models.widgets import *
 from datetime import datetime, timedelta
+
 from params import *
 
 class TimeSeriesControls:
+    """
+    Contain control widgets for the time series and implement control logic.
 
-    def foo(self):
-        self.update_freqeuncy = Select(
-            title='Update Frequency',
-            value='Daily',
-            options=['1 minute', '1 hour', 'Daily']
-        )
-        pass
+    """
 
     def __init__(self, update_graph):
         self.update_graph = update_graph
@@ -43,7 +40,7 @@ class TimeSeriesControls:
         self.var.on_change('value', self.general_change_handler)
 
         self.mean_checkbox = CheckboxGroup(
-            labels=['Highlight data points by magnitude of deviation from mean'],
+            labels=['Highlight data by minimum number of deviations from mean'],
             active=[]
         )
         self.mean_checkbox.on_change('active', self.mean_checkbox_change_handler)
@@ -62,11 +59,12 @@ class TimeSeriesControls:
 
         self.mean_unit = Select(
             value='days',
-            options=['days','months','years'],
+            options=['days','weeks','months','years'],
             disabled=True
         )
         self.mean_unit.on_change('value', self.general_change_handler)
 
+        # TODO: add help message
         self.mean_help = HelpButton(
             tooltip=Tooltip(
                 content=HTML(
@@ -122,6 +120,11 @@ class TimeSeriesControls:
         pass
 
     def general_change_handler(self, attr, old, new):
+        """
+        Make update button clickable after changes to control status.
+        
+        """
+
         self.update.disabled = False
         pass
 
@@ -141,7 +144,11 @@ class TimeSeriesControls:
         pass
 
     def update_handler(self):
-        # potentially susceptible to code injection when rendering title without sanitizing user input!
+        """
+        Disable the update button and initiate the update of graph.
+        
+        """
+
         self.update.disabled = True
         self.update_graph()
         pass
@@ -152,15 +159,17 @@ class TimeSeriesControls:
 
     def get_status(self):
         """
-        This method collects all the control data into a single dictionary
-        so it's easier to pass around
+        Return a dictionary of the current control status.
+        
         """
-        # TODO: input validity checks
+
+        # TODO: input validity checks and error messages
         self.status['title'] = self.title.value
 
         # map asset name to assetCode
         self.status['asset'] = equcor_assets.loc[equcor_assets['name'] == self.asset.value, 'assetCode'].to_string(index=False)
 
+        # disambiguates if the score belongs to Core or Advanced; the else branch is currently not in use (as only Core is allowed at the moment)
         if self.var.value in equcor_datacols['name'].values:
             self.status['var'] = equcor_datacols.loc[equcor_datacols['name'] == self.var.value, 'code'].to_string(index=False)
             self.status['var_core'] = True
@@ -169,7 +178,7 @@ class TimeSeriesControls:
             self.status['var_core'] = False
 
         self.status['mean_checkbox'] = len(self.mean_checkbox.active) != 0
-        # if checkbox
+
         if self.status['mean_checkbox']:
             match self.mean_unit.value:
                 case 'days':
@@ -181,10 +190,9 @@ class TimeSeriesControls:
 
         self.status['std'] = float(self.std.value)
 
+        # TODO: timeframe has not been extended to accomodate extra data need when backward mean is required. Too much complications
         self.status['start_date'] = self.start_date.value
         self.status['end_date'] = self.end_date.value
 
         return self.status
         pass
-
-    pass

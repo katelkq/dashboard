@@ -1,28 +1,22 @@
-import pandas as pd
-from bokeh.io import curdoc
 from bokeh.models import *
 from bokeh.plotting import *
 from bokeh.transform import linear_cmap
 from utilities import *
-from datetime import datetime, timedelta
-from heatmap_controls import HeatmapControls
-import numpy as np
-from params import *
-from graph import Graph
 
-# TODO: get authentication stuff into a separate file
-API_KEY = 'rf_1nMfaWdyWfpmtWB9dRE'
-DEBUG = True
+import numpy as np
+import pandas as pd
+
+from api import API_KEY
+from graph import Graph
+from heatmap_controls import HeatmapControls
+from params import *
+
+DEBUG = False
 
 class Heatmap(Graph):
     """
-    A Graph object takes in a pandas dataframe
-    the complete one, just so it can be adjusted as wished
-    a couple of parameters for these adjustments
-    the heatmap figure itself, along with control widgets
-    two separate getter methods to return their handles?
-    self.plot and self.controls (self.type?)
-    preprocessing to derive heatmap related metrics (not needed for timeseries)
+    Inherits from :ref:`Graph <graph>`. It's API handling and data processing and graphing all in one.
+
     """
 
     def init_controls(self):
@@ -45,7 +39,7 @@ class Heatmap(Graph):
         pass
 
     def fetch_data(self):
-        # fetch as much as needed
+        # fetch as much as needed - not more!
         start_date = min(self.control_status['size_mean_start'], self.control_status['color_mean_start'])
         end_date = max(self.control_status['size_mean_end'], self.control_status['color_mean_end'])
 
@@ -70,10 +64,6 @@ class Heatmap(Graph):
         pass
 
     def preprocess(self):
-        """
-        some logic to derive heatmap related rendering metrics
-        warning: in no way is this thing optimized
-        """
         # filter source if scope = Sector
         match self.control_status['scope']:
             case 'Sector':
@@ -341,5 +331,10 @@ class Heatmap(Graph):
         pass
 
     def activate_update(self):
+        """
+        Make the `Show Results` button clickable again!
+        
+        """
+
         self.controls.update.disabled = False
         pass

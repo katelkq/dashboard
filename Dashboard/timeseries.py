@@ -1,27 +1,21 @@
-import pandas as pd
-from bokeh.io import curdoc
 from bokeh.models import *
 from bokeh.plotting import *
-from bokeh.transform import linear_cmap
 from utilities import *
-from datetime import datetime, timedelta
-from timeseries_controls import TimeSeriesControls
-from graph import Graph
+
 import numpy as np
+import pandas as pd
+
+from api import API_KEY
+from graph import Graph
+from timeseries_controls import TimeSeriesControls
 from params import *
 
-API_KEY = 'rf_1nMfaWdyWfpmtWB9dRE'
 DEBUG = False
 
 class TimeSeries(Graph):
     """
-    A Graph object takes in a pandas dataframe
-    the complete one, just so it can be adjusted as wished
-    a couple of parameters for these adjustments
-    the heatmap figure itself, along with control widgets
-    two separate getter methods to return their handles?
-    self.plot and self.controls (self.type?)
-    preprocessing to derive heatmap related metrics (not needed for timeseries)
+    Inherits from :ref:`Graph <graph>`. It's API handling and data processing and graphing all in one.
+
     """
 
     def init_controls(self):
@@ -48,6 +42,7 @@ class TimeSeries(Graph):
         url = f"https://dataapi.marketpsych.com/esg/v4/data/equcor/dai/{self.control_status['asset']}?apikey={API_KEY}&start_date={self.control_status['start_date']}&end_date={self.control_status['end_date']}&datacols={self.control_status['var']}&format=csv"
 
         if DEBUG: print(url)
+
         self.source = pd.read_csv(url)
         self.source['windowTimestamp'] = pd.to_datetime(self.source['windowTimestamp'])
 
@@ -93,6 +88,7 @@ class TimeSeries(Graph):
             source=ColumnDataSource(self.source)
         )
 
+        # add highlights
         if self.control_status['mean_checkbox']:
             self.plot.vbar(
                 x='windowTimestamp',
@@ -108,13 +104,9 @@ class TimeSeries(Graph):
             line_width=2,
             source=ColumnDataSource(self.source)
         )
-        #self.plot.line(self.source.loc[self.source['dataType'] == 'News', 'windowTimestamp'], self.source.loc[self.source['dataType'] == 'News', 'managementSentiment'], legend_label="News", color="steelblue", line_width=2)
-        #self.plot.circle(self.source.loc[self.source['dataType'] == 'News', 'windowTimestamp'], self.source.loc[self.source['dataType'] == 'News', 'managementSentiment'], color="steelblue", size=5)
 
         # customizing the plot
         self.plot.toolbar.logo = None
-        #self.plot.yaxis.formatter = NumeralTickFormatter(format='0.00%')
-        #self.plot.legend.location = 'right'
 
         pass
 
@@ -127,5 +119,10 @@ class TimeSeries(Graph):
         pass
 
     def activate_update(self):
+        """
+        Make the `Show Results` button clickable again!
+        
+        """
+
         self.controls.update.disabled = False
         pass
