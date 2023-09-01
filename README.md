@@ -13,7 +13,7 @@ $ pip install -r ./requirements.txt
 Run the following command within the main folder:
 
 ```
-    $ python ./Dashboard/params_update.py
+$ python ./Dashboard/params_update.py
 ```
 
 This will refresh all the pickles under `./Dashboard/lib/` using data freshly fetched from Refinitiv. I don't think this needs to be done very often, though.
@@ -22,5 +22,5 @@ This will refresh all the pickles under `./Dashboard/lib/` using data freshly fe
 Run the following command within the main folder:
 
 ```
-    $ bokeh serve --show Dashboard
+$ bokeh serve --show Dashboard
 ```
