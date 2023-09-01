@@ -21,6 +21,10 @@ from params import *
 class HeatmapControls:
 
     def __init__(self, update_graph):
+        """
+        Initializes the layout of the control widgets.
+        """
+
         self.update_graph = update_graph
         self.status = {}
 
@@ -70,7 +74,7 @@ class HeatmapControls:
         self.size_var.on_change('value', self.general_change_handler)
 
         self.size_checkbox = CheckboxGroup(
-            labels=['Assign size by magnitude of deviation from mean'],
+            labels=['Assign size by number of deviations from mean'],
             active=[],
             visible=False
         )
@@ -92,7 +96,7 @@ class HeatmapControls:
 
         self.size_mean_unit = Select(
             value='days',
-            options=['days','months','years'],
+            options=['days','weeks','months','years'],
             visible=False,
             disabled=True
         )
@@ -119,7 +123,7 @@ class HeatmapControls:
         self.color_var.on_change('value', self.general_change_handler)
 
         self.color_checkbox = CheckboxGroup(
-            labels=['Assign color by relative deviation from mean'],
+            labels=['Assign color by number of deviations from mean'],
             active=[],
             visible=False
         )
@@ -141,7 +145,7 @@ class HeatmapControls:
 
         self.color_mean_unit = Select(
             value='days',
-            options=['days','months','years'],
+            options=['days', 'weeks', 'months','years'],
             visible=False,
             disabled=True
         )
