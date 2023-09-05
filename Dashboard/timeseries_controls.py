@@ -39,6 +39,44 @@ class TimeSeriesControls:
         )
         self.var.on_change('value', self.general_change_handler)
 
+        self.radio = RadioGroup(
+            labels=['Graph data points with no transformation', 'Graph data points as change in value'],
+            active=0
+        )
+        self.radio.on_change('active', self.radio_change_handler)
+
+        self.change = Div(
+            text='<p>Measure change since the past: </p>'
+        )
+
+        self.change_range = NumericInput(
+            value=7,
+            low=1,
+            width=50,
+            disabled=True
+        )
+        self.change_range.on_change('value', self.general_change_handler)
+
+        self.change_unit = Select(
+            value='days',
+            options=['days','weeks','months','years'],
+            disabled=True
+        )
+        self.change_unit.on_change('value', self.general_change_handler)
+
+        # TODO: add help message
+        self.change_help = HelpButton(
+            tooltip=Tooltip(
+                content=HTML(
+                """
+                This is a tooltip with additional information.<br />
+                It can use <b>HTML tags</b> like <a href="https://bokeh.org">links</a>!
+                """
+                ),
+                position="right"
+            )
+        )
+
         self.mean_checkbox = CheckboxGroup(
             labels=['Highlight data by minimum number of deviations from mean'],
             active=[]
@@ -110,6 +148,9 @@ class TimeSeriesControls:
             self.title,
             self.asset,
             self.var, 
+            self.radio,
+            self.change,
+            row(self.change_range, self.change_unit, self.change_help),
             self.mean_checkbox,
             self.mean,
             row(self.mean_range, self.mean_unit, self.mean_help),
@@ -126,6 +167,20 @@ class TimeSeriesControls:
         """
 
         self.update.disabled = False
+        pass
+
+    def radio_change_handler(self, attr, old, new):
+        self.update.disabled = False
+
+        match new:
+            case 0:
+                self.change_range.disabled = True
+                self.change_unit.disabled = True
+
+            case 1:
+                self.change_range.disabled = False
+                self.change_unit.disabled = False
+
         pass
 
     def mean_checkbox_change_handler(self, attr, old, new):
@@ -176,6 +231,16 @@ class TimeSeriesControls:
         else:
             self.status['var'] = equesg_datacols.loc[equesg_datacols['name'] == self.var.value, 'code'].to_string(index=False)
             self.status['var_core'] = False
+
+        self.status['radio'] = self.radio.active
+        if self.status['radio'] != 0:
+            match self.change_unit.value:
+                case 'days':
+                    self.status['change_days'] = int(self.change_range.value)
+                case 'months':
+                    self.status['change_days'] = 30 * int(self.change_range.value)
+                case 'years':
+                    self.status['change_days'] = 365 * int(self.change_range.value)
 
         self.status['mean_checkbox'] = len(self.mean_checkbox.active) != 0
 

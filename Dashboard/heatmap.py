@@ -40,8 +40,8 @@ class Heatmap(Graph):
 
     def fetch_data(self):
         # fetch as much as needed - not more!
-        start_date = min(self.control_status['size_mean_start'], self.control_status['color_mean_start'])
-        end_date = max(self.control_status['size_mean_end'], self.control_status['color_mean_end'])
+        start_date = min(self.control_status['size_start'], self.control_status['color_start'])
+        end_date = max(self.control_status['size_end'], self.control_status['color_end'])
 
         match self.control_status['scope']:
             case 'All':
@@ -58,13 +58,17 @@ class Heatmap(Graph):
 
         # TODO: catch error and display error message
         self.source = pd.read_csv(url)
+        self.source['windowTimestamp'] = pd.to_datetime(self.source['windowTimestamp'])
 
         if DEBUG: # prints the data as freshly fetched from Refinitiv
             print(self.source)
+
+        self.last = self.source.iloc[-1]['windowTimestamp']
+        print(self.last)
         pass
 
     def preprocess(self):
-        # filter source if scope = Sector
+        # fetch, then filter source if scope = Sector (or else url gets too long)
         match self.control_status['scope']:
             case 'Sector':
                 asset_codes = equcor_assets.loc[equcor_assets['TRBCEconomicSector'] == self.control_status['scope_sector'], 'assetCode'].to_csv(header=None, index=False).strip('\n').split('\n')
@@ -74,7 +78,7 @@ class Heatmap(Graph):
 
         # name shortcuts for your sanity
         size_var = self.control_status['size_var']
-        color_var = self.control_status['color_var']
+        var = self.control_status['color_var']
 
         # heatmap preprocessing logic for scope = All or Sector
         # TODO: Sector can be extended to Asset-like logic w/ grouping option of asset + score type
@@ -114,9 +118,9 @@ class Heatmap(Graph):
 
             self.source['label_y'] = self.source['y'] + self.source['height']
 
-        else:
+        else: # where the scope is a single asset
             id_vars = list(self.source.columns)[:6]
-            color_vars = list(self.source.columns)[7:]
+            vars = list(self.source.columns)[7:]
             self.source = pd.melt(self.source, id_vars=id_vars, value_name='score')
 
             # kick out buzz because it's meaningless to display it alongside other scores in a heatmap
@@ -126,27 +130,48 @@ class Heatmap(Graph):
             # is it by score, or by abs of std?
             
             # see if the checkboxes are ticked
-            if self.control_status['color_checkbox']:
-                interval = self.control_status['color_mean_interval']
+            match self.control_status['color_radio']:
+                case 1:
+                    interval = self.control_status['color_interval']
 
-                for color_var in color_vars:
-                    self.source.loc[self.source['variable'] == color_var, f'{interval}d_mean'] = self.source.loc[self.source['variable'] == color_var, 'score'].rolling(interval).mean()
-                    self.source.loc[self.source['variable'] == color_var, f'{interval}d_std'] = self.source.loc[self.source['variable'] == color_var, 'score'].rolling(interval).std()
+                    for var in vars:
+                        self.source.loc[self.source['variable'] == var, f'{interval}d_change'] = self.source.loc[self.source['variable'] == var, 'score'].rolling(interval).apply(lambda x: x.iloc[interval-1] - x.iloc[0])
 
-                self.source[f'{interval}d_distance'] = (self.source['score'] - self.source[f'{interval}d_mean']).div(self.source[f'{interval}d_std'])
+                case 2:
+                    interval = self.control_status['color_interval']
+
+                    for var in vars: # needs at least 1/2 of data present for the result to be not NaN
+                        self.source.loc[self.source['variable'] == var, f'{interval}d_mean'] = self.source.loc[self.source['variable'] == var, 'score'].rolling(interval, min_periods=interval//2).mean()
+                        self.source.loc[self.source['variable'] == var, f'{interval}d_std'] = self.source.loc[self.source['variable'] == var, 'score'].rolling(interval, min_periods=interval//2).std()
+
+                    self.source[f'{interval}d_deviation'] = (self.source['score'] - self.source[f'{interval}d_mean']).div(self.source[f'{interval}d_std'])
 
             size_var = 'score'
-            if self.control_status['size_checkbox']:
-                interval = self.control_status['size_mean_interval']
-                size_var = f'{interval}d_distance_abs'
+            match self.control_status['size_radio']:
+                case 1:
+                    interval = self.control_status['size_interval']
+                    size_var = f'{interval}d_change_abs'
 
-                for color_var in color_vars:
-                    self.source.loc[self.source['variable'] == color_var, f'{interval}d_mean'] = self.source.loc[self.source['variable'] == color_var, 'score'].rolling(interval).mean()
-                    self.source.loc[self.source['variable'] == color_var, f'{interval}d_std'] = self.source.loc[self.source['variable'] == color_var, 'score'].rolling(interval).std()
+                    for var in vars:
+                        self.source.loc[self.source['variable'] == var, f'{interval}d_change'] = self.source.loc[self.source['variable'] == var, 'score'].rolling(interval).apply(lambda x: x.iloc[-1] - x.iloc[0])
+                        
+                    self.source[f'{interval}d_change_abs'] = self.source[f'{interval}d_change'].abs()
 
-                self.source[f'{interval}d_distance'] = (self.source['score'] - self.source[f'{interval}d_mean']).div(self.source[f'{interval}d_std'])
-                self.source[f'{interval}d_distance_abs'] = self.source[f'{interval}d_distance'].abs()
+                case 2:
+                    interval = self.control_status['size_interval']
+                    size_var = f'{interval}d_deviation_abs'
 
+                    for var in vars: # needs at least 1/2 of data present for the result to be not NaN
+                        self.source.loc[self.source['variable'] == var, f'{interval}d_mean'] = self.source.loc[self.source['variable'] == var, 'score'].rolling(interval, min_periods=interval//2).mean()
+                        self.source.loc[self.source['variable'] == var, f'{interval}d_std'] = self.source.loc[self.source['variable'] == var, 'score'].rolling(interval, min_periods=interval//2).std()
+
+                    self.source[f'{interval}d_deviation'] = (self.source['score'] - self.source[f'{interval}d_mean']).div(self.source[f'{interval}d_std'])
+                    self.source[f'{interval}d_deviation_abs'] = self.source[f'{interval}d_deviation'].abs()
+
+            # clean up the history
+            self.source.drop(self.source[self.source['windowTimestamp'] != self.last].index, inplace=True)
+
+            # start of size calculation
             self.source = self.source.sort_values(by=[size_var], ascending=False).reset_index(drop=True)
 
             self.source[f'normalized'] = self.source[size_var].divide(self.source[size_var].sum())
@@ -158,6 +183,8 @@ class Heatmap(Graph):
             cutoff_indices = []
             for i in range(n):
                 cutoff_indices.append((self.source[f'cumulative'] - (i+1)/n).abs().argsort()[:1][0])
+
+            print(cutoff_indices)
 
             # slightly twisted logic
             cutoff_widths = [self.source[f'cumulative'][cutoff_indices[0]]]
@@ -180,7 +207,7 @@ class Heatmap(Graph):
             self.source['label_y'] = self.source['y'] + self.source['height']
 
         if DEBUG: # prints the preprocessed data
-            print(self.source)
+            print(self.source.drop(['industry','industryName','assetCode'], axis=1))
         pass
 
     def render(self):
@@ -190,18 +217,23 @@ class Heatmap(Graph):
 
             self.plot = figure(
                 title='Heatmap',
-                tools=[HoverTool(),SaveTool()],
-                tooltips=[
-                    ('Name', '@name'),
-                    (size_var, f'@{size_var}'),
-                    (color_var, f'@{color_var}')
+                tools=[
+                    HoverTool(
+                        tooltips=[
+                            ('Name', '@name'),
+                            (size_var, f'@{size_var}'),
+                            (color_var, f'@{color_var}')
+                        ],
+                        formatters={'@windowTimestamp': 'datetime'}
+                    ),
+                    SaveTool()
                 ],
                 width=1400,
                 height=900
             )
 
             # add multiple renderers
-            if False and 'Controvers' in color_var: # disabling this -> only needed for Advanced Controversy variables
+            if False and 'Controvers' in color_var: # disabling this -> reversed color scheme only needed for Advanced Controversy variables
                 colormap = linear_cmap(color_var, heatmap_palette_reversed, 0, 100)
             else:
                 colormap = linear_cmap(color_var, heatmap_palette, 0, 100)
@@ -246,22 +278,55 @@ class Heatmap(Graph):
 
             self.plot.title = self.control_status['title']
 
-        else:
+        else: # case of rendering heatmap for a single asset
             tooltips=[
                 ('Name', '@name'),
                 ('Score type', '@variable'),
                 ('Value', '@score')
             ]
 
-            if self.control_status['size_checkbox']:
-                interval = self.control_status['size_mean_interval']
-                tooltips.append((f'{interval}d_distance', f'@{interval}d_distance'))
+            # add the appropriate tooltips
+            match self.control_status['size_radio']:
+                case 1:
+                    interval = self.control_status['size_interval']
+                    tooltips.append((f'{interval}d_change', f'@{interval}d_change'))
+                case 2: 
+                    interval = self.control_status['size_interval']
+                    tooltips.append((f'{interval}d_deviation', f'@{interval}d_deviation'))
+            
+            match self.control_status['color_radio']:
+                case 0:
+                    color_var = 'score'
 
-            color_var = 'score'
-            if self.control_status['color_checkbox']:
-                interval = self.control_status['color_mean_interval']
-                color_var = f'{interval}d_distance'
-                tooltips.append((f'{interval}d_distance', f'@{interval}d_distance'))
+                    colormap = linear_cmap(color_var, heatmap_palette, 0, 100)
+
+                    # adding a color bar
+                    color_mapper = LinearColorMapper(palette=heatmap_palette, low=0, high=100)
+                    color_bar = ColorBar(color_mapper=color_mapper, label_standoff=12)
+
+                case 1:
+                    interval = self.control_status['color_interval']
+                    color_var = f'{interval}d_change'
+                    tooltips.append((f'{interval}d_change', f'@{interval}d_change'))
+
+                    colormap = linear_cmap(color_var, heatmap_palette, -50, 50)
+
+                    # adding a color bar
+                    # TODO: low and high needs adjustment with asset...?
+                    color_mapper = LinearColorMapper(palette=heatmap_palette, low=-50, high=50)
+                    color_bar = ColorBar(color_mapper=color_mapper, label_standoff=12)
+
+                case 2:
+                    interval = self.control_status['color_interval']
+                    color_var = f'{interval}d_deviation'
+                    tooltips.append((f'{interval}d_deviation', f'@{interval}d_deviation'))
+
+                    colormap = linear_cmap(color_var, heatmap_palette, -5, 5)
+
+                    # adding a color bar
+                    # TODO: low and high needs adjustment with asset...?
+                    color_mapper = LinearColorMapper(palette=heatmap_palette, low=-5, high=5)
+                    color_bar = ColorBar(color_mapper=color_mapper, label_standoff=12)
             
             self.plot = figure(
                 title='Heatmap',
@@ -270,26 +335,6 @@ class Heatmap(Graph):
                 width=1400,
                 height=900
             )
-
-            # add multiple renderers
-            # TODO: controversy variables need reversed color
-            match color_var:
-                case 'score':
-                    colormap = linear_cmap(color_var, heatmap_palette, 0, 100)
-
-                    # adding a color bar
-                    # TODO: low and high needs adjustment with variable...?
-                    color_mapper = LinearColorMapper(palette=heatmap_palette, low=0, high=100)
-                    color_bar = ColorBar(color_mapper=color_mapper, label_standoff=12)
-
-                case _:
-                    colormap = linear_cmap(color_var, heatmap_palette, -5, 5)
-
-                    # adding a color bar
-                    # TODO: low and high needs adjustment with variable...?
-                    color_mapper = LinearColorMapper(palette=heatmap_palette, low=-5, high=5)
-                    color_bar = ColorBar(color_mapper=color_mapper, label_standoff=12)
-
 
             self.plot.block(
                 x='x',
@@ -306,8 +351,7 @@ class Heatmap(Graph):
             self.plot.toolbar.logo = None
             self.plot.grid.grid_line_color = None
 
-            
-
+            # adding labels
             labels_name = LabelSet(x='x', y='label_y', x_offset=10, y_offset=-25, text='name', text_color='white', source=ColumnDataSource(self.source.loc[self.source['height']>0.1]))
             labels_ticker = LabelSet(x='x', y='label_y', x_offset=10, y_offset=-40, text='ticker', text_color='yellow', source=ColumnDataSource(self.source.loc[self.source['height']>0.1]))
             labels_variable = LabelSet(x='x', y='label_y', x_offset=10, y_offset=-55, text='variable', text_color='white', source=ColumnDataSource(self.source.loc[self.source['height']>0.1]))

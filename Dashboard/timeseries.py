@@ -10,7 +10,7 @@ from graph import Graph
 from timeseries_controls import TimeSeriesControls
 from params import *
 
-DEBUG = False
+DEBUG = True
 
 class TimeSeries(Graph):
     """
@@ -51,32 +51,70 @@ class TimeSeries(Graph):
         pass
 
     def preprocess(self):
-        if self.control_status['mean_checkbox']:
-            var = self.control_status['var']
-            days = self.control_status['mean_days']
+        match self.control_status['radio']:
+            case 0:
+                if self.control_status['mean_checkbox']:
+                    var = self.control_status['var']
+                    days = self.control_status['mean_days']
 
-            self.source[f'{var}_{days}d_mean'] = self.source.rolling(days)[var].mean()
-            self.source[f'{var}_{days}d_std'] = self.source.rolling(days)[var].std()
+                    self.source[f'{var}_{days}d_mean'] = self.source.rolling(days)[var].mean()
+                    self.source[f'{var}_{days}d_std'] = self.source.rolling(days)[var].std()
 
-            self.outliers = self.source.loc[(self.source[var] - self.source[f'{var}_{days}d_mean']).abs() > self.control_status['std'] * self.source[f'{var}_{days}d_std']]
+                    self.outliers = self.source.loc[(self.source[var] - self.source[f'{var}_{days}d_mean']).abs() > self.control_status['std'] * self.source[f'{var}_{days}d_std']]
 
+            case 1:
+                var = self.control_status['var']
+                days = self.control_status['change_days']
+
+                self.source[f'{var}_{days}d_change'] = self.source.rolling(days)[var].apply(lambda x: x.iloc[-1] - x.iloc[0])
+
+                if self.control_status['mean_checkbox']:
+                    days = self.control_status['mean_days']
+
+                    self.source[f'{var}_{days}d_mean'] = self.source.rolling(days)[var].mean()
+                    self.source[f'{var}_{days}d_std'] = self.source.rolling(days)[var].std()
+
+                    self.outliers = self.source.loc[(self.source[var] - self.source[f'{var}_{days}d_mean']).abs() > self.control_status['std'] * self.source[f'{var}_{days}d_std']]
+    
         pass
 
     def render(self):
-        var = self.control_status['var']
+        match self.control_status['radio']:
+            case 0:
+                var = self.control_status['var']
+            case 1:
+                var = self.control_status['var']
+                days = self.control_status['change_days']
+                var = f'{var}_{days}d_change'
 
         # create a new plot with a title and axis labels
+        lower_bound = self.source[var].min() * 0.9 if self.source[var].min() > 0 else self.source[var].min() * 1.1
+        upper_bound = self.source[var].max() * 1.1 if self.source[var].max() > 0 else self.source[var].max() * 0.9
+
         self.plot = figure(
             title='Time Series',
             x_axis_type='datetime',
-            y_range=(self.source[var].min() * 0.9, self.source[var].max() * 1.1),
-            tools=[HoverTool(
-                tooltips=[
-                    ('Date', '@windowTimestamp{%F}'),
-                    (var, f'@{var}')
-                ],
-                formatters={'@windowTimestamp': 'datetime'}),SaveTool()],
-            
+            y_range=(lower_bound, upper_bound),
+            tools=[
+                HoverTool(
+                    tooltips=[
+                        ('Date', '@windowTimestamp{%F}'),
+                        (var, f'@{var}')
+                    ],
+                    formatters={'@windowTimestamp': 'datetime'}
+                ),
+                PanTool(),
+                WheelZoomTool(
+                    name='xwheel_zoom',
+                    dimensions='width'
+                ),
+                WheelZoomTool(
+                    name='ywheel_zoom',
+                    dimensions='height'
+                ),
+                ResetTool(),
+                SaveTool()
+            ],
             width=1400,
             height=900
         )
@@ -93,6 +131,7 @@ class TimeSeries(Graph):
             self.plot.vbar(
                 x='windowTimestamp',
                 top=var,
+                legend_label='outliers',
                 color='lime',
                 source=ColumnDataSource(self.outliers)
             )

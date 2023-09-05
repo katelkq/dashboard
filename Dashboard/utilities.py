@@ -30,8 +30,8 @@ def color_gradient(c1, c2, steps=0):
     return gradient
     pass
 
-heatmap_palette = color_gradient('#ff0000', '#008000', 100)
-heatmap_palette_reversed = color_gradient('#008000', '#ff0000', 100)
+heatmap_palette = color_gradient('#ff0000', '#816708', 50) + color_gradient('#816708', '#008000', 50)
+heatmap_palette_reversed = list(reversed(heatmap_palette))
 
 def string_to_datetime(x):
     return datetime.strptime(x, '%Y-%m-%dT%H:%M:%S%z')

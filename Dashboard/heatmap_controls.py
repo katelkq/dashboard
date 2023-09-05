@@ -60,35 +60,35 @@ class HeatmapControls:
             options=core
         )
         self.size_var.on_change('value', self.general_change_handler)
-
-        self.size_checkbox = CheckboxGroup(
-            labels=['Assign size by number of deviations from mean'],
-            active=[],
+    
+        self.size_radio = RadioGroup(
+            labels=['Assign size with no transformation', 'Assign size by change in value', 'Assign size by number of deviations from mean'],
+            active=0,
             visible=False
         )
-        self.size_checkbox.on_change('active', self.size_checkbox_change_handler)
+        self.size_radio.on_change('active', self.size_radio_change_handler)
 
-        self.size_mean = Div(
-            text='<p>Sample mean from the past: </p>',
+        self.size_msg = Div(
+            text='<p>Click on other options to customize.</p>',
             visible=False
         )
 
-        self.size_mean_range = NumericInput(
+        self.size_range = NumericInput(
             value=30,
             low=1,
             width=50,
             visible=False,
             disabled=True
         )
-        self.size_mean_range.on_change('value', self.general_change_handler)
+        self.size_range.on_change('value', self.general_change_handler)
 
-        self.size_mean_unit = Select(
+        self.size_unit = Select(
             value='days',
             options=['days','weeks','months','years'],
             visible=False,
             disabled=True
         )
-        self.size_mean_unit.on_change('value', self.general_change_handler)
+        self.size_unit.on_change('value', self.general_change_handler)
 
         # TODO: add help message
         self.size_mean_help = HelpButton(
@@ -111,34 +111,34 @@ class HeatmapControls:
         )
         self.color_var.on_change('value', self.general_change_handler)
 
-        self.color_checkbox = CheckboxGroup(
-            labels=['Assign color by number of deviations from mean'],
-            active=[],
+        self.color_radio = RadioGroup(
+            labels=['Assign color with no transformation', 'Assign color by change in value', 'Assign color by number of deviations from mean'],
+            active=0,
             visible=False
         )
-        self.color_checkbox.on_change('active', self.color_checkbox_change_handler)
+        self.color_radio.on_change('active', self.color_radio_change_handler)
 
-        self.color_mean = Div(
-            text='<p>Sample mean from the past: </p>',
+        self.color_msg = Div(
+            text='<p>Click on other options to customize.</p>',
             visible=False
         )
 
-        self.color_mean_range = NumericInput(
+        self.color_range = NumericInput(
             value=30,
             low=1,
             width=50,
             visible=False,
             disabled=True
         )
-        self.color_mean_range.on_change('value', self.general_change_handler)
+        self.color_range.on_change('value', self.general_change_handler)
 
-        self.color_mean_unit = Select(
+        self.color_unit = Select(
             value='days',
             options=['days', 'weeks', 'months','years'],
             visible=False,
             disabled=True
         )
-        self.color_mean_unit.on_change('value', self.general_change_handler)
+        self.color_unit.on_change('value', self.general_change_handler)
         
         # TODO: add help message
         self.color_mean_help = HelpButton(
@@ -162,14 +162,14 @@ class HeatmapControls:
             row(self.scope, self.scope_sector, self.scope_asset), 
             self.group_var, 
             self.size_var, 
-            self.size_checkbox,
-            self.size_mean,
-            row(self.size_mean_range, self.size_mean_unit, self.size_mean_help),
+            self.size_radio,
+            self.size_msg,
+            row(self.size_range, self.size_unit, self.size_mean_help),
             self.color_var, 
-            self.color_checkbox,
-            self.color_mean,
-            row(self.color_mean_range, self.color_mean_unit, self.color_mean_help),
-            self.update
+            self.color_radio,
+            self.color_msg,
+            row(self.color_range, self.color_unit, self.color_mean_help),
+            self.update,
         )
         pass
 
@@ -199,22 +199,25 @@ class HeatmapControls:
                 self.group_var.value = 'Score type'
                 self.group_var.options = ['Score type']
 
-                self.size_var.visible = False
+                self.size_var.visible = True
+                self.size_var.value = 'ESG Overall Score'
+                self.size_var.options = core[1:]
 
-                self.size_checkbox.active = []
-                self.size_checkbox.visible = True
-                self.size_mean.visible = True
-                self.size_mean_range.visible = True
-                self.size_mean_unit.visible = True
+                self.size_radio.active = 0
+                self.size_radio.visible = True
+                self.size_msg.visible = True
+                self.size_range.visible = True
+                self.size_unit.visible = True
                 self.size_mean_help.visible = True
 
-                self.color_var.visible = False
+                self.color_var.visible = True
+                self.color_var.options = core[1:]
 
-                self.color_checkbox.active = []
-                self.color_checkbox.visible = True
-                self.color_mean.visible = True
-                self.color_mean_range.visible = True
-                self.color_mean_unit.visible = True
+                self.color_radio.active = 0
+                self.color_radio.visible = True
+                self.color_msg.visible = True
+                self.color_range.visible = True
+                self.color_unit.visible = True
                 self.color_mean_help.visible = True
 
             case _:
@@ -228,22 +231,22 @@ class HeatmapControls:
                 self.size_var.options = core
                 self.size_var.visible = True
                 
-                self.size_checkbox.active = []
-                self.size_checkbox.visible = False
-                self.size_mean.visible = False
-                self.size_mean_range.visible = False
-                self.size_mean_unit.visible = False
+                self.size_radio.active = 0
+                self.size_radio.visible = False
+                self.size_msg.visible = False
+                self.size_range.visible = False
+                self.size_unit.visible = False
                 self.size_mean_help.visible = False
 
                 self.color_var.value = 'ESG Overall Score'
                 self.color_var.options = core
                 self.color_var.visible = True
 
-                self.color_checkbox.active = []
-                self.color_checkbox.visible = False
-                self.color_mean.visible = False
-                self.color_mean_range.visible = False
-                self.color_mean_unit.visible = False
+                self.color_radio.active = 0
+                self.color_radio.visible = False
+                self.color_msg.visible = False
+                self.color_range.visible = False
+                self.color_unit.visible = False
                 self.color_mean_help.visible = False
         pass
 
@@ -262,41 +265,55 @@ class HeatmapControls:
                 self.color_var.value = 'ESG Overall Score'
                 self.color_var.options = core
                 self.color_var.disabled = False
-                self.color_checkbox.disabled = False
+                self.color_radio.disabled = False
 
             # deprecated branch. maybe it will be revived some day?
             case 'Asset and score type':
                 self.color_var.value = '-'
                 self.color_var.options = ['-']
                 self.color_var.disabled = True
-                self.color_checkbox.active = []
-                self.color_checkbox.disabled = True
+                self.color_radio.active = 0
+                self.color_radio.disabled = True
         pass
 
-    def size_checkbox_change_handler(self, attr, old, new):
+    def size_radio_change_handler(self, attr, old, new):
         self.update.disabled = False
 
-        match len(new):
+        match new:
             case 0:
-                self.size_mean_range.disabled = True
-                self.size_mean_unit.disabled = True
+                self.size_msg.text = '<p>Click on other options to customize.</p>'
+                self.size_range.disabled = True
+                self.size_unit.disabled = True
 
             case 1:
-                self.size_mean_range.disabled = False
-                self.size_mean_unit.disabled = False
+                self.size_msg.text = '<p>Measure change since the past: </p>'
+                self.size_range.disabled = False
+                self.size_unit.disabled = False
+
+            case 2:
+                self.size_msg.text = '<p>Sample mean from the past: </p>'
+                self.size_range.disabled = False
+                self.size_unit.disabled = False
         pass
     
-    def color_checkbox_change_handler(self, attr, old, new):
+    def color_radio_change_handler(self, attr, old, new):
         self.update.disabled = False
 
-        match len(new):
+        match new:
             case 0:
-                self.color_mean_range.disabled = True
-                self.color_mean_unit.disabled = True
+                self.color_msg.text = '<p>Click on other options to customize.</p>'
+                self.color_range.disabled = True
+                self.color_unit.disabled = True
 
             case 1:
-                self.color_mean_range.disabled = False
-                self.color_mean_unit.disabled = False
+                self.color_msg.text = '<p>Measure change since the past: </p>'
+                self.color_range.disabled = False
+                self.color_unit.disabled = False
+
+            case 2:
+                self.color_msg.text = '<p>Sample mean from the past: </p>'
+                self.color_range.disabled = False
+                self.color_unit.disabled = False
         pass
 
     def update_handler(self):
@@ -339,26 +356,26 @@ class HeatmapControls:
             self.status['size_var'] = equesg_datacols.loc[equesg_datacols['name'] == self.size_var.value, 'code'].to_string(index=False)
             self.status['size_var_core'] = False
 
-        self.status['size_checkbox'] = len(self.size_checkbox.active) != 0
+        self.status['size_radio'] = self.size_radio.active
 
-        # if checkbox is ticked, extend time range of query as appropriate
-        if self.status['size_checkbox']:
-            match self.size_mean_unit.value:
+        # extend time range of query as appropriate
+        if self.status['size_radio'] != 0:
+            match self.size_unit.value:
                 case 'days':
-                    days = int(self.size_mean_range.value)
+                    days = int(self.size_range.value)
                 case 'weeks':
-                    days = 7 * int(self.size_mean_range.value)
+                    days = 7 * int(self.size_range.value)
                 case 'months':
-                    days = 30 * int(self.size_mean_range.value)
+                    days = 30 * int(self.size_range.value)
                 case 'years':
-                    days = 365 * int(self.size_mean_range.value)
+                    days = 365 * int(self.size_range.value)
 
-            self.status['size_mean_start'] = datetime.date(datetime.now()) - timedelta(days=days)
-            self.status['size_mean_end'] = datetime.date(datetime.now())
-            self.status['size_mean_interval'] = days
+            self.status['size_start'] = datetime.date(datetime.now()) - timedelta(days=days)
+            self.status['size_end'] = datetime.date(datetime.now())
+            self.status['size_interval'] = days
         else:
-            self.status['size_mean_start'] = datetime.date(datetime.now()) - timedelta(days=1)
-            self.status['size_mean_end'] = datetime.date(datetime.now())
+            self.status['size_start'] = datetime.date(datetime.now()) - timedelta(days=1)
+            self.status['size_end'] = datetime.date(datetime.now())
 
         # similarly, else branch not in use
         if self.color_var.value in equcor_datacols['name'].values:
@@ -368,26 +385,26 @@ class HeatmapControls:
             self.status['color_var'] = equesg_datacols.loc[equesg_datacols['name'] == self.color_var.value, 'code'].to_string(index=False)
             self.status['color_var_core'] = False
 
-        self.status['color_checkbox'] = len(self.color_checkbox.active) != 0
+        self.status['color_radio'] = self.color_radio.active
 
-        # if checkbox is ticked, extend time range of query as appropriate
-        if self.status['color_checkbox']:
-            match self.color_mean_unit.value:
+        # extend time range of query as appropriate
+        if self.status['color_radio'] != 0:
+            match self.color_unit.value:
                 case 'days':
-                    days = int(self.color_mean_range.value)
+                    days = int(self.color_range.value)
                 case 'weeks':
-                    days = 7 * int(self.color_mean_range.value)
+                    days = 7 * int(self.color_range.value)
                 case 'months':
-                    days = 30 * int(self.color_mean_range.value)
+                    days = 30 * int(self.color_range.value)
                 case 'years':
-                    days = 365 * int(self.color_mean_range.value)
+                    days = 365 * int(self.color_range.value)
 
-            self.status['color_mean_start'] = datetime.date(datetime.now()) - timedelta(days=days)
-            self.status['color_mean_end'] = datetime.date(datetime.now())
-            self.status['color_mean_interval'] = days
+            self.status['color_start'] = datetime.date(datetime.now()) - timedelta(days=days)
+            self.status['color_end'] = datetime.date(datetime.now())
+            self.status['color_interval'] = days
         else:
-            self.status['color_mean_start'] = datetime.date(datetime.now()) - timedelta(days=1)
-            self.status['color_mean_end'] = datetime.date(datetime.now())
+            self.status['color_start'] = datetime.date(datetime.now()) - timedelta(days=1)
+            self.status['color_end'] = datetime.date(datetime.now())
 
         return self.status
         pass
