@@ -15,7 +15,11 @@ Development
 
 Below are a few possible development directions:
 
-- 1
-- 2
+- TODO
+- local caches of api query results
+- extend to advanced dataset
+- color scope
+- extend time range
+- missing data indicator
 
 I've also littered the source file with :code:`TODO`; some of them might make sense. So feel free to also check that out!
