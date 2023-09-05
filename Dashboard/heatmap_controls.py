@@ -91,15 +91,16 @@ class HeatmapControls:
         self.size_unit.on_change('value', self.general_change_handler)
 
         # TODO: add help message
-        self.size_mean_help = HelpButton(
+        self.size_help = HelpButton(
             tooltip=Tooltip(
                 content=HTML(
                 """
-                This is a tooltip with additional information.<br />
-                It can use <b>HTML tags</b> like <a href="https://bokeh.org">links</a>!
+                Change in value is calculated as the <b>absolute</b> difference between the most recent value and the value from the specified point in time.<br />
+                Mean is calculated as the linear average of the value during the specified time period.<br />
+                The <b>absolute</b> distance of the most recent value from this mean in number of standard deviations is then reported.
                 """
                 ),
-                position="right"
+                position="right",
             ),
             visible=False
         )
@@ -145,8 +146,9 @@ class HeatmapControls:
             tooltip=Tooltip(
                 content=HTML(
                 """
-                This is a tooltip with additional information.<br />
-                It can use <b>HTML tags</b> like <a href="https://bokeh.org">links</a>!
+                <b>Change in value</b> is calculated as the difference between the most recent value and the value from the specified point in time.<br />
+                <b>Mean</b> is calculated as the linear average of the value during the specified time period.<br />
+                The distance of the most recent value from this mean in number of standard deviations is then reported.
                 """
                 ),
                 position="right"
@@ -164,7 +166,7 @@ class HeatmapControls:
             self.size_var, 
             self.size_radio,
             self.size_msg,
-            row(self.size_range, self.size_unit, self.size_mean_help),
+            row(self.size_range, self.size_unit, self.size_help),
             self.color_var, 
             self.color_radio,
             self.color_msg,
@@ -208,7 +210,7 @@ class HeatmapControls:
                 self.size_msg.visible = True
                 self.size_range.visible = True
                 self.size_unit.visible = True
-                self.size_mean_help.visible = True
+                self.size_help.visible = True
 
                 self.color_var.visible = True
                 self.color_var.options = core[1:]
@@ -220,6 +222,7 @@ class HeatmapControls:
                 self.color_unit.visible = True
                 self.color_mean_help.visible = True
 
+            # otherwise
             case _:
                 self.scope_sector.visible = new == 'Sector'
                 self.scope_asset.visible = False
@@ -236,7 +239,7 @@ class HeatmapControls:
                 self.size_msg.visible = False
                 self.size_range.visible = False
                 self.size_unit.visible = False
-                self.size_mean_help.visible = False
+                self.size_help.visible = False
 
                 self.color_var.value = 'ESG Overall Score'
                 self.color_var.options = core

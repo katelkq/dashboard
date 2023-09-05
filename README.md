@@ -24,3 +24,5 @@ Run the following command within the main folder:
 ```
 $ bokeh serve --show Dashboard
 ```
+
+If this is the first time in a while that you've run the server, chances are that it won't initialize normally (cause currently unknown). Wait for it to crash and relaunch.

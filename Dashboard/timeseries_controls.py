@@ -102,13 +102,13 @@ class TimeSeriesControls:
         )
         self.mean_unit.on_change('value', self.general_change_handler)
 
-        # TODO: add help message
         self.mean_help = HelpButton(
             tooltip=Tooltip(
                 content=HTML(
                 """
-                This is a tooltip with additional information.<br />
-                It can use <b>HTML tags</b> like <a href="https://bokeh.org">links</a>!
+                <b>Change in value</b> is calculated as the difference between each value and its corresponding past value from the specified point in time.<br />
+                <b>Mean</b> is calculated as the moving linear average of the value over the specified time period.<br />
+                The values that are more than the specified distance of standard deviations away from its corresponding mean are then highlighted.
                 """
                 ),
                 position="right"

@@ -18,6 +18,7 @@ Below are a few possible development directions:
 - TODO
 - local caches of api query results
 - extend to advanced dataset
+- de-normalize select advanced scores using buzz (timeseries)
 - color scope
 - extend time range
 - missing data indicator
