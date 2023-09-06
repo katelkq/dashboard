@@ -1,5 +1,5 @@
 """
-Currently only offer access to the API key.
+Currently only offer access to the API key. Nothing else!
 
 """
 

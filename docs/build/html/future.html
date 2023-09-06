@@ -40,12 +40,17 @@
 </section>
 <section id="development">
 <h2>Development<a class="headerlink" href="#development" title="Link to this heading">¶</a></h2>
-<p>Below are a few possible development directions:</p>
+<p>Below are a few possible development directions, roughly sorted by descending problem size, then by importance:</p>
 <ul class="simple">
-<li><p>1</p></li>
-<li><p>2</p></li>
+<li><p>TODO</p></li>
+<li><p><strong>Extension of interface to use Advanced scores as well.</strong> Currently the interface only supports the Core scores; the Advanced scores are more numerous, more sparse (lots of NaNs are common), have more subtleties (e.g. controversy scores are “lower means better” while in general other scores are “higher means better”), and in general are just a lot more headache to deal with. It’s useful to have them on this interface, but I think using the Refinitiv interface to check out Advanced scores could be the more efficient solution.</p></li>
+<li><p><strong>Denormalizing Advanced scores.</strong> With reference to the above point: some advanced scores are presented as a percentage; these are usually already normalized with respect to the buzz of the asset (not 100% sure, please double-check the Refinitiv whitepaper). To compare their value along a time series, you would need to denormalize these scores using their corresponding buzz on each day by multiplying them together. This is NOT currently supported on the Refinitiv interface.</p></li>
+<li><p><strong>Local caching of API query results.</strong> Currently API queries are the bottleneck limiting loading speed (becomes more obvious if you want to graph, say, 5 years of data), while also throttling some functionalities (e.g. maximum time range limit for a single query). Rewriting this interface to use locally cached data instead could solve the problem, but it will probably be a LOT of work (setting up local storage, downloading past data, parsing interface requests into corresponding filenames).</p></li>
+<li><p>color scope</p></li>
+<li><p>extend time range</p></li>
+<li><p>missing data indicator</p></li>
 </ul>
-<p>I’ve also littered the source file with <code class="code docutils literal notranslate"><span class="pre">TODO</span></code>; some of them might make sense. So feel free to also check that out!</p>
+<p>I’ve also littered the source file with <code class="code docutils literal notranslate"><span class="pre">TODO</span></code>; some of them might make sense (implying that some of them don’t). Feel free to also check that out!</p>
 </section>
 </section>
 
