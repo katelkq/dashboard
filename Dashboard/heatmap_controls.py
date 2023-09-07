@@ -201,7 +201,7 @@ class HeatmapControls:
                 self.group_var.value = 'Score type'
                 self.group_var.options = ['Score type']
 
-                self.size_var.visible = True
+                self.size_var.visible = False
                 self.size_var.value = 'ESG Overall Score'
                 self.size_var.options = core[1:]
 
