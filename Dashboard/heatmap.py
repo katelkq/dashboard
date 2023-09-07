@@ -64,7 +64,6 @@ class Heatmap(Graph):
             print(self.source)
 
         self.last = self.source.iloc[-1]['windowTimestamp']
-        print(self.last)
         pass
 
     def preprocess(self):
@@ -183,8 +182,6 @@ class Heatmap(Graph):
             cutoff_indices = []
             for i in range(n):
                 cutoff_indices.append((self.source[f'cumulative'] - (i+1)/n).abs().argsort()[:1][0])
-
-            print(cutoff_indices)
 
             # slightly twisted logic
             cutoff_widths = [self.source[f'cumulative'][cutoff_indices[0]]]

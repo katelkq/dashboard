@@ -57,8 +57,8 @@ class TimeSeries(Graph):
                     var = self.control_status['var']
                     days = self.control_status['mean_days']
 
-                    self.source[f'{var}_{days}d_mean'] = self.source.rolling(days)[var].mean()
-                    self.source[f'{var}_{days}d_std'] = self.source.rolling(days)[var].std()
+                    self.source[f'{var}_{days}d_mean'] = self.source.rolling(days, min_periods=days//2)[var].mean()
+                    self.source[f'{var}_{days}d_std'] = self.source.rolling(days, min_periods=days//2)[var].std()
 
                     self.outliers = self.source.loc[(self.source[var] - self.source[f'{var}_{days}d_mean']).abs() > self.control_status['std'] * self.source[f'{var}_{days}d_std']]
 
@@ -71,8 +71,8 @@ class TimeSeries(Graph):
                 if self.control_status['mean_checkbox']:
                     days = self.control_status['mean_days']
 
-                    self.source[f'{var}_{days}d_mean'] = self.source.rolling(days)[var].mean()
-                    self.source[f'{var}_{days}d_std'] = self.source.rolling(days)[var].std()
+                    self.source[f'{var}_{days}d_mean'] = self.source.rolling(days, min_periods=days//2)[var].mean()
+                    self.source[f'{var}_{days}d_std'] = self.source.rolling(days, min_periods=days//2)[var].std()
 
                     self.outliers = self.source.loc[(self.source[var] - self.source[f'{var}_{days}d_mean']).abs() > self.control_status['std'] * self.source[f'{var}_{days}d_std']]
     
