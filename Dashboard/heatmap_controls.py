@@ -212,7 +212,7 @@ class HeatmapControls:
                 self.size_unit.visible = True
                 self.size_help.visible = True
 
-                self.color_var.visible = True
+                self.color_var.visible = False
                 self.color_var.options = core[1:]
 
                 self.color_radio.active = 0
